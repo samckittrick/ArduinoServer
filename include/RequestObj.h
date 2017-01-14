@@ -1,5 +1,5 @@
 /*
-   Protocol Constants for Arduino Control Server
+    Request Object to be sent between server components
 
     Copyright (C) 2017 Scott McKittrick
 
@@ -16,30 +16,35 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
-    Created by: Scott McKittrick, Jan. 8th 2017
+    Created by: Scott McKittrick, Jan. 11th 2017
     
 */
 
-enum SERIAL_COMMAND
+#ifndef REQUESTOBJ_H
+#define REQUESTOBJ_H
+
+#include <stdint.h>
+#include <stdio.h>
+#include <string>
+#include "ProtocolConsts.h"
+
+//Request object to be sent between components of the server
+//Request objects are immutable
+class RequestObj 
 {
-    //Identification Constants
-    DEV_GET_INFO = 0x0001;
-    DEV_GET_INFO_RSP = 0x0100;
-        
-    //RGB Lamp Constants
-    LAMP_OFF = 0x0010;
-    LAMP_OFF_RSP = 0x1000;
-    LAMP_SOLID = 0x0011;
-    LAMP_SOLID_RSP = 0x1100;
-    LAMP_FADE = 0x0013;
-    LAMP_FADE_RSP = 0x1300;
-    LAMP_SOLID_CYCLE = 0x0014;
-    LAMP_SOLID_CYCLE_RSP = 0x1400;
-    LAMP_GET_STATUS = 0x0015;
-    LAMP_GET_STATUS_RSP = 0x1500; 
+  public:
+    RequestObj(SerialCommand_t cmd, size_t datalen, uint8_t *data);
+    ~RequestObj();
+    SerialCommand_t getCommand() const;
+    size_t getDataLen() const;
+    const uint8_t* getData() const;
+    
+    private:
+        std::string devId;
+        SerialCommand_t command;
+        uint8_t *data;
+        size_t dataLen;
 };
 
-enum SERIAL_DEV_TYPE
-{
-    DEV_TYPE_LAMP = 0x01;
-}
+
+#endif //#ifndef REQUESTOBJ_H
