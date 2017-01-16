@@ -1,0 +1,3 @@
+[submodule "SerialPacketConn"]
+	path = SerialPacketConn
+	url = https://github.com/samckittrick/SerialPacketConn.git
