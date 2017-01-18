@@ -21,35 +21,32 @@
 */
 #ifndef PROTOCOL_CONSTANTS_H
 #define PROTOCOL_CONSTANTS_H
-typedef enum SERIAL_COMMAND
-{
+
+#include <stdint.h>
+
     //Identification Constants
-    DEV_GET_INFO = 0x0001,
-    DEV_GET_INFO_RSP = 0x0100,
-    DEV_SET_INFO = 0x0002,
-    DEV_SET_INFO_RSP = 0x0200,
+const uint16_t DEV_GET_INFO = 0x0001;
+const uint16_t DEV_GET_INFO_RSP = 0x0100;
+const uint16_t DEV_SET_INFO = 0x0002;
+const uint16_t DEV_SET_INFO_RSP = 0x0200;
         
     //RGB Lamp Constants
-    LAMP_OFF = 0x0010,
-    LAMP_OFF_RSP = 0x1000,
-    LAMP_SOLID = 0x0011,
-    LAMP_SOLID_RSP = 0x1100,
-    LAMP_FADE = 0x0013,
-    LAMP_FADE_RSP = 0x1300,
-    LAMP_SOLID_CYCLE = 0x0014,
-    LAMP_SOLID_CYCLE_RSP = 0x1400,
-    LAMP_GET_STATUS = 0x0015,
-    LAMP_GET_STATUS_RSP = 0x1500 
-} SerialCommand_t;
+const uint16_t LAMP_OFF = 0x0010;
+const uint16_t LAMP_OFF_RSP = 0x1000;
+const uint16_t LAMP_SOLID = 0x0011;
+const uint16_t LAMP_SOLID_RSP = 0x1100;
+const uint16_t LAMP_FADE = 0x0013;
+const uint16_t LAMP_FADE_RSP = 0x1300;
+const uint16_t LAMP_SOLID_CYCLE = 0x0014;
+const uint16_t LAMP_SOLID_CYCLE_RSP = 0x1400;
+const uint16_t LAMP_GET_STATUS = 0x0015;
+const uint16_t LAMP_GET_STATUS_RSP = 0x1500; 
 
-enum SERIAL_DEV_TYPE
-{
-    DEV_TYPE_LAMP = 0x01
-};
+const uint8_t DEV_TYPE_LAMP = 0x01;
 
 typedef struct Dev_Info {
     std::string devname;
-    std::string devid;
-    SERIAL_DEV_TYPE type;
+    uint8_t devid;
+    uint8_t type;
 } DevInfo;
 #endif //#ifndef PROTOCOL_CONSTANTS_H
