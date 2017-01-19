@@ -1,5 +1,5 @@
-:q/*
-    Basic Serial Device Class
+/*
+    Basic Device Class. Abstract interface representing Devices that can be commanded. 
 
     Copyright (C) 2017 Scott McKittrick
 
@@ -20,28 +20,19 @@
 
 */
 
+#ifndef BASICDEVICE_H
+#define BASICDEVICE_H
+
 #include <stdint.h>
 #include <string>
 
-#include "ServerExceptions.h"
-#include "ProtocolConsts.h"
-#include "LinuxSerialPacketConn.h"
-class BasicSerialDevice {
+class BasicDevice {
 
  public:
-  BasicSerialDevice(std::string devPath);
-  ~BasicSerialDevice();
-  const uint8_t getDeviceId() const;
-  const uint8_t getDeviceType() const;
-  const std::string getDeviceName() const;
-  //const uint8_t* getStatus();
-  
-
- private:
-  LinuxSerialPacketConn conn;
-  DevInfo devInfo;
-  //void packetReceiver(const uint8_t *payload, int payloadLength);
-  
-
-
+  virtual const uint8_t getDeviceId() const = 0;
+  virtual const uint8_t getDeviceType() const = 0;
+  virtual const std::string getDeviceName() const = 0;
 };
+
+
+#endif

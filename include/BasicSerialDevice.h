@@ -20,13 +20,16 @@
 
 */
 
+#ifndef BASICSERIALDEVICE_H
+#define BASICSERIALDEVICE_H
+
 #include <stdint.h>
 #include <string>
-
+#include "BasicDevice.h"
 #include "ServerExceptions.h"
 #include "ProtocolConsts.h"
 #include "LinuxSerialPacketConn.h"
-class BasicSerialDevice {
+class BasicSerialDevice : public BasicDevice {
 
  public:
   BasicSerialDevice(std::string devPath);
@@ -45,3 +48,5 @@ class BasicSerialDevice {
 
 
 };
+
+#endif

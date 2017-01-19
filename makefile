@@ -5,7 +5,7 @@ BUILDDIR=build
 
 all:
 
-$(BUILDDIR)/BasicSerialDevice.o: LinuxSerialPacketConn.a src/BasicSerialDevice.cpp include/BasicSerialDevice.h include/ProtocolConsts.h 
+$(BUILDDIR)/BasicSerialDevice.o: LinuxSerialPacketConn.a src/BasicSerialDevice.cpp include/BasicDevice.h include/BasicSerialDevice.h include/ProtocolConsts.h 
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/BasicSerialDevice.cpp -o $@
 
 .PHONY: LinuxSerialPacketConn.a
