@@ -34,4 +34,15 @@ struct ConnectionException : public std::exception {
   }
 };
 
+struct CommunicationException : public std::exception {
+  std::string message;
+  CommunicationException(std::string m){
+    message = m;
+  }
+
+  const char * what() { 
+    return message.c_str();
+  }
+};
+
 #endif

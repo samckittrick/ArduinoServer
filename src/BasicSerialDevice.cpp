@@ -31,20 +31,19 @@ BasicSerialDevice::BasicSerialDevice(std::string devPath)
   if(conn.connect() == -1 )
     throw ConnectionException("Error Connecting to Serial Device");
   //usleep(1000000);
-  uint16_t command = DEV_GET_INFO;
-  uint8_t commandArr[2];
-  commandArr[0] = DEV_GET_INFO>>8;
-  commandArr[1] = DEV_GET_INFO & 0x00FF;
-  conn.sendMessage(commandArr, 2);
-  uint8_t response[20];
-  conn.recvData(response, 20);
-  command = response[0] << 8;
-  command += response[1];
-  if(command == DEV_GET_INFO_RSP)
+
+
+  //Lets find out information about this device
+  struct command message;
+  message.cmd = DEV_GET_INFO;
+  struct command response = sendCommand(message);
+
+  //Read the response;
+  if(response.cmd == DEV_GET_INFO_RSP)
     {
-      devInfo.devid = response[2];
-      devInfo.type = response[3];
-      devInfo.devname = (char*)(response + 4);
+      devInfo.devid = response.data[0];
+      devInfo.type = response.data[1];
+      devInfo.devname = (char*)(&response.data[2]);
     }
   else
     {
@@ -73,3 +72,47 @@ const std::string BasicSerialDevice::getDeviceName() const
   return devInfo.devname;
 }
 
+struct BasicDevice::command BasicSerialDevice::sendCommand(struct BasicDevice::command message)
+{
+  uint8_t commandArr[message.data.size() + 2];
+  commandArr[0] = message.cmd >> 8;
+  commandArr[1] = message.cmd & 0x00FF;
+  for(int i = 0; i < message.data.size(); i++)
+    {
+      //Offset the data by 2 since we already inserted the command value
+      commandArr[i+2] = message.data[i];
+    }
+
+  //Send the message
+  conn.sendMessage(commandArr, message.data.size() + 2);
+  
+  //Wait for a response, may need a timeout here.
+  uint8_t responseArr[MAXDATALEN];
+  int recvLen = conn.recvData(responseArr, MAXDATALEN);
+  
+  //Make sure we got data back
+  //We should at least get two bytes for the command response even if there's no data to go with it
+  if(recvLen <= 1)
+    {
+      throw CommunicationException("No Data Returned");
+    }
+
+  //Parse the response
+  struct command rsp;
+  rsp.cmd = responseArr[0] << 8;
+  rsp.cmd += responseArr[1];
+
+  //If there is data, parse that too
+  if(recvLen >2)
+    {
+      for(int i = 2; i < recvLen; i++)
+	{
+	  rsp.data.push_back(responseArr[i]);
+	}
+    }
+  else
+    {
+      rsp.data.clear();
+    }
+  return rsp;
+}

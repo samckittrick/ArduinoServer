@@ -25,13 +25,22 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 class BasicDevice {
 
  public:
+  //Command Struct
+  struct command {
+    uint16_t cmd;
+    std::vector<uint8_t> data;
+  };
+
   virtual const uint8_t getDeviceId() const = 0;
   virtual const uint8_t getDeviceType() const = 0;
   virtual const std::string getDeviceName() const = 0;
+
+  virtual struct command sendCommand(struct command message) = 0;  
 };
 
 
