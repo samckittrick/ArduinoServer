@@ -34,6 +34,7 @@ class DeviceManager
     public:
         int addDevice(int devType, std::string devAddr);
 	const std::vector<BasicDevice*> getDeviceList() const;
+	BasicDevice* getDeviceById(uint8_t id);
     
     private:
         //Device list

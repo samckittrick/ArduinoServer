@@ -13,4 +13,7 @@ int main()
     {
       std::cout << "Device " << (*it)->getDeviceName() << " found.\n";
     }
+
+  BasicDevice *dev = mgr.getDeviceById(0x45);
+  std::cout << "Device by id 0x45 named " << dev->getDeviceName() << " found. \n";
 }

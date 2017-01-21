@@ -5,7 +5,7 @@ BUILDDIR=build
 
 all:
 
-$(BUILDDIR)/DeviceManager.o: include/DeviceManager.h include/ProtocolConsts.h include/BasicDevice.h src/DeviceManager.cpp
+$(BUILDDIR)/DeviceManager.o: $(BUILDDIR)/BasicSerialDevice.o include/DeviceManager.h include/ProtocolConsts.h include/BasicDevice.h src/DeviceManager.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/DeviceManager.cpp -o $@
 
 $(BUILDDIR)/BasicSerialDevice.o: LinuxSerialPacketConn.a src/BasicSerialDevice.cpp include/BasicDevice.h include/BasicSerialDevice.h include/ProtocolConsts.h 

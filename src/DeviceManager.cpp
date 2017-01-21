@@ -22,6 +22,7 @@
 
 #include "DeviceManager.h"
 
+//Add a device to the list. If there is an error connecting, return -1.
 int DeviceManager::addDevice(int devType, std::string devAddr)
 {
   try
@@ -49,3 +50,17 @@ const std::vector<BasicDevice*> DeviceManager::getDeviceList() const
 {
   return devList;
 }
+
+//Find the device by it's id. Return null if the device doesn't exist.
+BasicDevice* DeviceManager::getDeviceById(uint8_t id)
+{
+  for(std::vector<BasicDevice*>::iterator it = devList.begin(); it != devList.end(); it++)
+    {
+      if(id == (*it)->getDeviceId())
+	{
+	  return *it;
+	}
+    }
+  return NULL;
+}
+
