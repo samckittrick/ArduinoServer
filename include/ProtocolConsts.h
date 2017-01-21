@@ -42,11 +42,14 @@ const uint16_t LAMP_SOLID_CYCLE_RSP = 0x1400;
 const uint16_t LAMP_GET_STATUS = 0x0015;
 const uint16_t LAMP_GET_STATUS_RSP = 0x1500; 
 
-const uint8_t DEV_TYPE_LAMP = 0x01;
+const uint8_t DEV_SERVICE_LAMP = 0x01;
+
+const uint8_t DEV_TYPE_SERIAL = 0x01;
 
 typedef struct Dev_Info {
-    std::string devname;
-    uint8_t devid;
-    uint8_t type;
+  std::string devname;
+  uint8_t devid;
+  uint8_t type;
 } DevInfo;
+
 #endif //#ifndef PROTOCOL_CONSTANTS_H

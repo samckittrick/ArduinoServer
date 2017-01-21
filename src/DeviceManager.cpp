@@ -15,33 +15,37 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
-    Created by: Scott McKittrick, Jan. 11th 2017
-    
+
+    Created by: Scott McKittrick, Jan. 20th 2017
+
 */
 
-#ifndef DEVICEMANAGER_H
-#define DEVICEMANAGER_H
+#include "DeviceManager.h"
 
-#include <vector>
-#include "BasicDevice.h"
-#include "BasicSerialDevice.h"
-#include "ProtocolConsts.h"
-#include <iostream>
-
-class DeviceManager
+int DeviceManager::addDevice(int devType, std::string devAddr)
 {
-    public:
-        int addDevice(int devType, std::string devAddr);
-	const std::vector<BasicDevice*> getDeviceList() const;
-    
-    private:
-        //Device list
-	std::vector<BasicDevice*> devList;
+  try
+    {
+      switch(devType)
+	{
+	case DEV_TYPE_SERIAL:
+	  devList.push_back(new BasicSerialDevice(devAddr));
+	  std::cout << "Adding Serial Device: " << devAddr << std::endl;
+	  break;
+	default:
+	  return -1;
+	}
 
-	
-	
-        
-};
+      return 0;
+    }
+  catch(ConnectionException e)
+    {
+      std::cout << "Error Loading Device: " << e.what() << std::endl;
+      return -1;
+    }
+}
 
-#endif
+const std::vector<BasicDevice*> DeviceManager::getDeviceList() const
+{
+  return devList;
+}

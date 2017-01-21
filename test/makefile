@@ -2,8 +2,17 @@ CC=g++
 CFLAGS=-std=c++11
 INCLUDE=-I../include/ -I../SerialPacketConn/include/
 
+all: DeviceManagerTest BasicSerialDeviceTest
+
+DeviceManagerTest: DeviceManager.o DeviceManagerTest.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) ../build/* ../SerialPacketConn/build/* DeviceManagerTest.cpp -o $@
+
 BasicSerialDeviceTest: BasicSerialDevice.o BasicSerialDeviceTest.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) ../build/* ../SerialPacketConn/build/* BasicSerialDeviceTest.cpp -o $@
+
+.PHONY: DeviceManager.o
+DeviceManager.o:
+	$(MAKE) -C .. build/DeviceManager.o
 
 .PHONY: BasicSerialDevice.o
 BasicSerialDevice.o:
@@ -11,4 +20,5 @@ BasicSerialDevice.o:
 
 clean:
 	rm BasicSerialDeviceTest
+	rm DeviceManagerTest
 	$(MAKE) -C .. clean
