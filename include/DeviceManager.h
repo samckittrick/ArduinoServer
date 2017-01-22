@@ -27,6 +27,7 @@
 #include "BasicDevice.h"
 #include "BasicSerialDevice.h"
 #include "ProtocolConsts.h"
+#include "CPPLogger.h"
 #include <iostream>
 
 class DeviceManager

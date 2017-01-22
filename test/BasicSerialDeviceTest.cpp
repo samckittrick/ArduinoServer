@@ -1,10 +1,12 @@
 #include <iostream>
 #include "BasicSerialDevice.h"
+#include "CPPLogger.h"
 
 using namespace std;
 
 int main()
 {
+  CPPLogger::getLog().setLogLevel(DEBUG);
   try
     {
       BasicSerialDevice dev("/dev/ttyACM0");

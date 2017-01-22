@@ -24,6 +24,7 @@
 
 BasicSerialDevice::BasicSerialDevice(std::string devPath)
 {
+  LOG(DEBUG) << "Initializing Serial Device.";
   conn.setDeviceName(devPath);
   conn.setBaudRate(9600);
   //conn.setPacketReceiver(&packetReceiver);
@@ -33,6 +34,7 @@ BasicSerialDevice::BasicSerialDevice(std::string devPath)
   //usleep(1000000);
 
 
+  LOG(DEBUG) << "Getting information from device";
   //Lets find out information about this device
   struct command message;
   message.cmd = DEV_GET_INFO;
@@ -44,9 +46,11 @@ BasicSerialDevice::BasicSerialDevice(std::string devPath)
       devInfo.devid = response.data[0];
       devInfo.type = response.data[1];
       devInfo.devname = (char*)(&response.data[2]);
+      LOG(DEBUG) << "Device Description: ID: " << devInfo.devid << " Type: " << devInfo.type << " Name: " << devInfo.devname;
     }
   else
     {
+      LOG(ERROR) << "Device info not found or not valid";
       throw ConnectionException("Device is not correct type");
     }
   
@@ -74,6 +78,7 @@ const std::string BasicSerialDevice::getDeviceName() const
 
 struct BasicDevice::command BasicSerialDevice::sendCommand(struct BasicDevice::command message)
 {
+  LOG(DEBUG) << "Sending Message| Command:  " << message.cmd;
   uint8_t commandArr[message.data.size() + 2];
   commandArr[0] = message.cmd >> 8;
   commandArr[1] = message.cmd & 0x00FF;
@@ -86,6 +91,8 @@ struct BasicDevice::command BasicSerialDevice::sendCommand(struct BasicDevice::c
   //Send the message
   conn.sendMessage(commandArr, message.data.size() + 2);
   
+
+  LOG(DEBUG) << "Receiving response";
   //Wait for a response, may need a timeout here.
   uint8_t responseArr[MAXDATALEN];
   int recvLen = conn.recvData(responseArr, MAXDATALEN);

@@ -31,9 +31,10 @@ int DeviceManager::addDevice(int devType, std::string devAddr)
 	{
 	case DEV_TYPE_SERIAL:
 	  devList.push_back(new BasicSerialDevice(devAddr));
-	  std::cout << "Adding Serial Device: " << devAddr << std::endl;
+	  LOG(INFO) << "Adding Serial Device: " << devAddr;
 	  break;
 	default:
+	  LOG(WARN) << "Unknown Device Type";
 	  return -1;
 	}
 
@@ -41,7 +42,7 @@ int DeviceManager::addDevice(int devType, std::string devAddr)
     }
   catch(ConnectionException e)
     {
-      std::cout << "Error Loading Device: " << e.what() << std::endl;
+      LOG(ERROR) << "Error Loading Device: " << e.what();
       return -1;
     }
 }

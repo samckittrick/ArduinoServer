@@ -29,6 +29,7 @@
 #include "ServerExceptions.h"
 #include "ProtocolConsts.h"
 #include "LinuxSerialPacketConn.h"
+#include "CPPLogger.h"
 class BasicSerialDevice : public BasicDevice {
 
  public:

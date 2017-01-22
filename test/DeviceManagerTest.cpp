@@ -3,9 +3,11 @@
 #include "DeviceManager.h"
 #include "BasicDevice.h"
 #include "ProtocolConsts.h"
+#include "CPPLogger.h"
 
 int main()
 {
+  CPPLogger::getLog().setLogLevel(DEBUG);
   DeviceManager mgr;
   mgr.addDevice(DEV_TYPE_SERIAL, "/dev/ttyACM0");
   std::vector<BasicDevice*> list = mgr.getDeviceList();

@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-std=c++11
-INCLUDE=-I../include/ -I../SerialPacketConn/include/
+INCLUDE=-I../include/ -I../SerialPacketConn/include/ -I../CPPLogger/
 
 all: DeviceManagerTest BasicSerialDeviceTest
 

@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-std=c++11
-INCLUDE=-Iinclude/ -ISerialPacketConn/include/
+INCLUDE=-Iinclude/ -ISerialPacketConn/include/ -ICPPLogger/
 BUILDDIR=build
 
 all:

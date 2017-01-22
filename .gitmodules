@@ -1,3 +1,6 @@
 [submodule "SerialPacketConn"]
 	path = SerialPacketConn
 	url = https://github.com/samckittrick/SerialPacketConn.git
+[submodule "CPPLogger"]
+	path = CPPLogger
+	url = https://github.com/samckittrick/CPPLogger.git
