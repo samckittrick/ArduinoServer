@@ -38,8 +38,11 @@ BasicSerialDevice::BasicSerialDevice(std::string devPath)
   //Lets find out information about this device
   struct command message;
   message.cmd = DEV_GET_INFO;
-  struct command response = sendCommand(message);
-
+  sendCommand(message);
+  
+  
+  struct command response = recvCommand();
+  LOG(DEBUG) << "Response received in constructor";
   //Read the response;
   if(response.cmd == DEV_GET_INFO_RSP)
     {
@@ -76,7 +79,7 @@ const std::string BasicSerialDevice::getDeviceName() const
   return devInfo.devname;
 }
 
-struct BasicDevice::command BasicSerialDevice::sendCommand(struct BasicDevice::command message)
+void BasicSerialDevice::sendCommand(struct BasicDevice::command message)
 {
   LOG(DEBUG) << "Sending Message| Command:  " << message.cmd;
   uint8_t commandArr[message.data.size() + 2];
@@ -90,17 +93,20 @@ struct BasicDevice::command BasicSerialDevice::sendCommand(struct BasicDevice::c
 
   //Send the message
   conn.sendMessage(commandArr, message.data.size() + 2);
+}
   
-
+struct BasicDevice::command BasicSerialDevice::recvCommand()
+{
   LOG(DEBUG) << "Receiving response";
   //Wait for a response, may need a timeout here.
   uint8_t responseArr[MAXDATALEN];
-  int recvLen = conn.recvData(responseArr, MAXDATALEN);
+  int recvLen = conn.recvData(responseArr, MAXDATALEN, 10);
   
   //Make sure we got data back
   //We should at least get two bytes for the command response even if there's no data to go with it
   if(recvLen <= 1)
     {
+      LOG(ERROR) << "No Data received";
       throw CommunicationException("No Data Returned");
     }
 

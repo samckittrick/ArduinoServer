@@ -16,5 +16,5 @@ LinuxSerialPacketConn.a:
 	$(MAKE) -C SerialPacketConn $@
 
 clean: 
-	rm $(BUILDDIR)/*
+	rm -f $(BUILDDIR)/*
 	$(MAKE) -C SerialPacketConn clean

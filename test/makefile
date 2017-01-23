@@ -19,6 +19,6 @@ BasicSerialDevice.o:
 	$(MAKE) -C .. build/BasicSerialDevice.o
 
 clean:
-	rm BasicSerialDeviceTest
-	rm DeviceManagerTest
+	rm -f BasicSerialDeviceTest
+	rm -f DeviceManagerTest
 	$(MAKE) -C .. clean

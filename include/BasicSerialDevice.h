@@ -39,7 +39,8 @@ class BasicSerialDevice : public BasicDevice {
   const uint8_t getDeviceType() const;
   const std::string getDeviceName() const;
   //const uint8_t* getStatus();
-  struct command sendCommand(struct command message);
+  void sendCommand(struct command message);
+  struct command recvCommand();
 
  private:
   LinuxSerialPacketConn conn;

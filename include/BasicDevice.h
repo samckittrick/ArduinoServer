@@ -40,7 +40,8 @@ class BasicDevice {
   virtual const uint8_t getDeviceType() const = 0;
   virtual const std::string getDeviceName() const = 0;
 
-  virtual struct command sendCommand(struct command message) = 0;  
+  virtual void sendCommand(struct command message) = 0;  
+  virtual struct command recvCommand() = 0;
 };
 
 
