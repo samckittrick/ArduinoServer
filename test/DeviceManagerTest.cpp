@@ -18,4 +18,8 @@ int main()
 
   BasicDevice *dev = mgr.getDeviceById(0x45);
   std::cout << "Device by id 0x45 named " << dev->getDeviceName() << " found. \n";
+
+  std::string line;
+  getline(std::cin, line);
+  mgr.getDeviceById(0x45)->signalEnd();
 }
