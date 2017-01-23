@@ -33,6 +33,8 @@ class BasicDevice {
   //Command Struct
   struct command {
     uint16_t cmd;
+    uint8_t src;
+    uint8_t dst;
     std::vector<uint8_t> data;
   };
   

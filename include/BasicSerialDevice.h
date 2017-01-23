@@ -27,6 +27,7 @@
 #include <string>
 #include <atomic>
 #include <thread>
+#include <unistd.h>
 #include "BasicDevice.h"
 #include "ServerExceptions.h"
 #include "ProtocolConsts.h"

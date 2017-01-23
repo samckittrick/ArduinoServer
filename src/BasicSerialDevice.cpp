@@ -24,7 +24,7 @@
 
 BasicSerialDevice::BasicSerialDevice(std::string devPath)
 {
-  LOG(DEBUG) << "Initializing Serial Device.";
+  LOG(INFO) << "Initializing Serial Device.";
   conn.setDeviceName(devPath);
   conn.setBaudRate(9600);
   //conn.setPacketReceiver(&packetReceiver);
@@ -38,12 +38,23 @@ BasicSerialDevice::BasicSerialDevice(std::string devPath)
   //Lets find out information about this device
   struct command message;
   message.cmd = DEV_GET_INFO;
-  sendCommand(message);
-  
-  
   struct command response;
-  int result = recvCommand(&response);
-  LOG(DEBUG) << "Response received in constructor";
+  int result;
+  for(int i = 0; i < 5; i++) //Retry Logic since arduino resets when serial device is opened
+    {
+      sendCommand(message);
+  
+      result = recvCommand(&response);
+      if(result > -1)
+	{
+	  break;
+	}
+      else
+	{
+	  usleep(1000000);
+	  LOG(WARN) << "Device didn't respond. Retrying...";
+	}
+    }
 
   if(result == -1)
     throw ConnectionException("Device did not respond");
@@ -92,17 +103,19 @@ const std::string BasicSerialDevice::getDeviceName() const
 void BasicSerialDevice::sendCommand(struct BasicDevice::command message)
 {
   LOG(DEBUG) << "Sending Message| Command:  " << message.cmd;
-  uint8_t commandArr[message.data.size() + 2];
+  uint8_t commandArr[message.data.size() + 4];
   commandArr[0] = message.cmd >> 8;
   commandArr[1] = message.cmd & 0x00FF;
+  commandArr[2] = message.src;
+  commandArr[3] = message.dst;
   for(int i = 0; i < message.data.size(); i++)
     {
       //Offset the data by 2 since we already inserted the command value
-      commandArr[i+2] = message.data[i];
+      commandArr[i+4] = message.data[i];
     }
 
   //Send the message
-  conn.sendMessage(commandArr, message.data.size() + 2);
+  conn.sendMessage(commandArr, message.data.size() + 4);
 }
   
 int BasicSerialDevice::recvCommand(struct command *rsp)
@@ -122,11 +135,13 @@ int BasicSerialDevice::recvCommand(struct command *rsp)
   //Parse the response
   rsp->cmd = responseArr[0] << 8;
   rsp->cmd += responseArr[1];
+  rsp->src = responseArr[2];
+  rsp->dst = responseArr[3];
 
   //If there is data, parse that too
-  if(recvLen >2)
+  if(recvLen >4)
     {
-      for(int i = 2; i < recvLen; i++)
+      for(int i = 4; i < recvLen; i++)
 	{
 	  rsp->data.push_back(responseArr[i]);
 	}
