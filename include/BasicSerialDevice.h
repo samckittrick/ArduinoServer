@@ -25,6 +25,8 @@
 
 #include <stdint.h>
 #include <string>
+#include <atomic>
+#include <thread>
 #include "BasicDevice.h"
 #include "ServerExceptions.h"
 #include "ProtocolConsts.h"
@@ -35,19 +37,23 @@ class BasicSerialDevice : public BasicDevice {
  public:
   BasicSerialDevice(std::string devPath);
   ~BasicSerialDevice();
+
   const uint8_t getDeviceId() const;
   const uint8_t getDeviceType() const;
   const std::string getDeviceName() const;
-  //const uint8_t* getStatus();
+  
   void sendCommand(struct command message);
-  struct command recvCommand();
+  int recvCommand(struct command *rsp);
+
+  void commandReceived(struct command message);
+  void readThread();
+  void signalEnd();
 
  private:
   LinuxSerialPacketConn conn;
   DevInfo devInfo;
-  //void packetReceiver(const uint8_t *payload, int payloadLength);
-  
-
+  std::atomic<bool> endCond;
+  std::thread readThreadObj;
 
 };
 

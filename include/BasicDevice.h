@@ -35,13 +35,19 @@ class BasicDevice {
     uint16_t cmd;
     std::vector<uint8_t> data;
   };
+  
+  typedef void (*commandReceiver)(struct command);
 
   virtual const uint8_t getDeviceId() const = 0;
   virtual const uint8_t getDeviceType() const = 0;
   virtual const std::string getDeviceName() const = 0;
 
   virtual void sendCommand(struct command message) = 0;  
-  virtual struct command recvCommand() = 0;
+  virtual int recvCommand(struct command *rsp) = 0;
+
+  virtual void commandReceived(struct command message) = 0;
+  virtual void readThread() = 0;
+  virtual void signalEnd() = 0;
 };
 
 

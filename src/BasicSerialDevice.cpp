@@ -41,8 +41,13 @@ BasicSerialDevice::BasicSerialDevice(std::string devPath)
   sendCommand(message);
   
   
-  struct command response = recvCommand();
+  struct command response;
+  int result = recvCommand(&response);
   LOG(DEBUG) << "Response received in constructor";
+
+  if(result == -1)
+    throw ConnectionException("Device did not respond");
+
   //Read the response;
   if(response.cmd == DEV_GET_INFO_RSP)
     {
@@ -56,6 +61,11 @@ BasicSerialDevice::BasicSerialDevice(std::string devPath)
       LOG(ERROR) << "Device info not found or not valid";
       throw ConnectionException("Device is not correct type");
     }
+
+  //Begin the read thread.
+  LOG(DEBUG) << "Starting read thread";
+  endCond = false;
+  readThreadObj = std::thread(&BasicSerialDevice::readThread, this);
   
 }
 
@@ -95,37 +105,62 @@ void BasicSerialDevice::sendCommand(struct BasicDevice::command message)
   conn.sendMessage(commandArr, message.data.size() + 2);
 }
   
-struct BasicDevice::command BasicSerialDevice::recvCommand()
+int BasicSerialDevice::recvCommand(struct command *rsp)
 {
-  LOG(DEBUG) << "Receiving response";
+  LOG(DEBUG) << "Listening for response";
   //Wait for a response, may need a timeout here.
   uint8_t responseArr[MAXDATALEN];
-  int recvLen = conn.recvData(responseArr, MAXDATALEN, 10);
+  int recvLen = conn.recvData(responseArr, MAXDATALEN, 2);
   
   //Make sure we got data back
   //We should at least get two bytes for the command response even if there's no data to go with it
   if(recvLen <= 1)
     {
-      LOG(ERROR) << "No Data received";
-      throw CommunicationException("No Data Returned");
+      return -1;
     }
 
   //Parse the response
-  struct command rsp;
-  rsp.cmd = responseArr[0] << 8;
-  rsp.cmd += responseArr[1];
+  rsp->cmd = responseArr[0] << 8;
+  rsp->cmd += responseArr[1];
 
   //If there is data, parse that too
   if(recvLen >2)
     {
       for(int i = 2; i < recvLen; i++)
 	{
-	  rsp.data.push_back(responseArr[i]);
+	  rsp->data.push_back(responseArr[i]);
 	}
     }
   else
     {
-      rsp.data.clear();
+      rsp->data.clear();
     }
-  return rsp;
+  return 0;
+}
+
+//Call back for when a device sends a message back
+void BasicSerialDevice::commandReceived(struct command message)
+{
+  LOG(DEBUG) << "Packet Received: " << message.cmd;
+}
+
+//Thread function for reading messages from serial device
+void BasicSerialDevice::readThread()
+{
+  LOG(DEBUG) << "Read thread started";
+  while(!endCond.load())
+    {
+      struct command rsp;
+      int result = recvCommand(&rsp);
+       if(result != -1)
+	 commandReceived(rsp);
+    }
+}
+
+//Used to end the read thread
+void BasicSerialDevice::signalEnd()
+{
+  LOG(INFO) << "Ending thread..";
+  endCond = true;
+  readThreadObj.join();
 }

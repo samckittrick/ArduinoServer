@@ -31,7 +31,7 @@ int DeviceManager::addDevice(int devType, std::string devAddr)
 	{
 	case DEV_TYPE_SERIAL:
 	  devList.push_back(new BasicSerialDevice(devAddr));
-	  LOG(INFO) << "Adding Serial Device: " << devAddr;
+	  LOG(INFO) << "Added Serial Device: " << devAddr;
 	  break;
 	default:
 	  LOG(WARN) << "Unknown Device Type";
