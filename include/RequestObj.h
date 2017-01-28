@@ -25,7 +25,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <string>
+#include <sstream>
 #include <vector>
 #include "ProtocolConsts.h"
 
@@ -36,10 +36,10 @@ class RequestObj
 
  public:
  RequestObj(uint16_t c, uint8_t d, uint8_t s, std::vector<uint8_t> da) : command(c), dst(d), src(s), data(da) {}
-  uint16_t getCommand() { return command;}
-  uint8_t getDest() { return dst; }
-  uint8_t getSrc() { return src; }
-  const std::vector<uint8_t>& getData() { return data; }
+  uint16_t getCommand() const { return command;}
+  uint8_t getDest() const { return dst; }
+  uint8_t getSrc() const { return src; }
+  const std::vector<uint8_t>& getData() const { return data; }
   std::string toString() const { 
     std::stringstream s;
     s << "RequestObject - Command: " << command << " Dst: " << dst << " Src: " << src;

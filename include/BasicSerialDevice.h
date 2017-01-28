@@ -47,6 +47,13 @@ class BasicSerialDevice : public BasicDevice {
   int recvCommand(struct command *rsp);
 
   void commandReceived(struct command message);
+
+  void processRequest(const RequestObj& req);
+  void setRequestReceiver(requestReceiver r);
+
+  static struct command reqObj2Command(const RequestObj& req);
+  static RequestObj command2ReqObj(struct command m);
+
   void readThread();
   void signalEnd();
 
@@ -55,6 +62,7 @@ class BasicSerialDevice : public BasicDevice {
   DevInfo devInfo;
   std::atomic<bool> endCond;
   std::thread readThreadObj;
+  requestReceiver receiver; 
 
 };
 

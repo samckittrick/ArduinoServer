@@ -24,6 +24,8 @@
 
 BasicSerialDevice::BasicSerialDevice(std::string devPath)
 {
+  receiver = NULL;
+  
   LOG(INFO) << "Initializing Serial Device.";
   conn.setDeviceName(devPath);
   conn.setBaudRate(9600);
@@ -157,6 +159,10 @@ int BasicSerialDevice::recvCommand(struct command *rsp)
 void BasicSerialDevice::commandReceived(struct command message)
 {
   LOG(DEBUG) << "Packet Received: " << message.cmd;
+  if(receiver != NULL)
+    {
+      receiver(command2ReqObj(message));
+    }
 }
 
 //Thread function for reading messages from serial device
@@ -179,3 +185,30 @@ void BasicSerialDevice::signalEnd()
   endCond = true;
   readThreadObj.join();
 }
+
+struct BasicDevice::command BasicSerialDevice::reqObj2Command(const RequestObj& req)
+{
+  struct command cmd;
+  cmd.cmd = req.getCommand();
+  cmd.dst = req.getDest();
+  cmd.src = req.getSrc();
+  cmd.data = req.getData();
+  return cmd;
+}
+
+ RequestObj BasicSerialDevice::command2ReqObj(struct command m)
+{
+  return RequestObj(m.cmd, m.dst, m.src, m.data);
+}
+
+void BasicSerialDevice::processRequest(const RequestObj& req)
+{
+  sendCommand(reqObj2Command(req));
+}
+
+void BasicSerialDevice::setRequestReceiver(requestReceiver r)
+{
+  receiver = r;
+}
+
+

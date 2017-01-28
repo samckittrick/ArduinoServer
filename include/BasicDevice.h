@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include "RequestObj.h"
 
 class BasicDevice {
 
@@ -38,16 +39,15 @@ class BasicDevice {
     std::vector<uint8_t> data;
   };
   
-  typedef void (*commandReceiver)(struct command);
+  typedef void (*requestReceiver)(RequestObj req);
 
   virtual const uint8_t getDeviceId() const = 0;
   virtual const uint8_t getDeviceType() const = 0;
   virtual const std::string getDeviceName() const = 0;
 
-  virtual void sendCommand(struct command message) = 0;  
-  virtual int recvCommand(struct command *rsp) = 0;
+  virtual void processRequest(const RequestObj& req) = 0;
+  virtual void setRequestReceiver(requestReceiver r) = 0;
 
-  virtual void commandReceived(struct command message) = 0;
   virtual void readThread() = 0;
   virtual void signalEnd() = 0;
 };
