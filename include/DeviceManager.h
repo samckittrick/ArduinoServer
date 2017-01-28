@@ -24,26 +24,49 @@
 #define DEVICEMANAGER_H
 
 #include <vector>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 #include "BasicDevice.h"
 #include "BasicSerialDevice.h"
 #include "ProtocolConsts.h"
 #include "CPPLogger.h"
-#include <iostream>
+#include "RequestObj.h"
 
-class DeviceManager
+class DeviceManager : public RequestQueue
 {
     public:
+        DeviceManager();
+        //Device Enumeration and management functions
         int addDevice(int devType, std::string devAddr);
 	const std::vector<BasicDevice*> getDeviceList() const;
 	BasicDevice* getDeviceById(uint8_t id);
+	//Device addressing is based on a single byte address. Address 0 is devicemanager itself. 
+	//Address 255 is the broadcast address, leaving 253 possible addresses for devices
+	BasicDevice* getDeviceByAddress(uint8_t addr);
+
+	//Request Management functions
+	void addRequest(const RequestObj& req);
+	void processQueue();
+	static struct command ReqObj2Command(const RequestObj req&);
+	static RequestObject Command2ReqObj(struct command m);
+
+	//Notify threads that an exit has been requested
+	void endThreads();
     
     private:
         //Device list
 	std::vector<BasicDevice*> devList;
-
+	//Incoming Request Queue
+	std::queue<RequestObj> reqQueue;
 	
-	
-        
+	//Thread Saftey and control
+	std::mutex devListMutex;
+	std::mutex reqListMutex;
+	std::condition_variable hasRequest;
+	std::atomic<bool> exitCondition;
+	std::thread processThread;
 };
 
 #endif

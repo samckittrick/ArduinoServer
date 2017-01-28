@@ -4,6 +4,7 @@
 #include "BasicDevice.h"
 #include "ProtocolConsts.h"
 #include "CPPLogger.h"
+#include "RequestObj.h"
 
 int main()
 {
@@ -21,5 +22,16 @@ int main()
 
   std::string line;
   getline(std::cin, line);
-  mgr.getDeviceById(0x45)->signalEnd();
+
+  std::vector<uint8_t> d = { 0x03, 0x04, 0x05, 0x06 };
+  RequestObj req(LAMP_SOLID, 0x41, 0x42, d);
+  RequestObj req2(LAMP_OFF, 0x42, 0x43, d);
+  RequestObj req3(LAMP_FADE, 0x43, 0x44, d);
+  mgr.addRequest(req);
+  mgr.addRequest(req2);
+  mgr.addRequest(req3);
+
+  mgr.endThreads();
+
+  
 }
