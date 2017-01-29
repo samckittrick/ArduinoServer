@@ -34,7 +34,7 @@
 #include "CPPLogger.h"
 #include "RequestObj.h"
 
-class DeviceManager : public RequestQueue
+class DeviceManager
 {
     public:
         DeviceManager();
@@ -49,17 +49,23 @@ class DeviceManager : public RequestQueue
 	//Request Management functions
 	void addRequest(const RequestObj& req);
 	void processQueue();
-	static struct command ReqObj2Command(const RequestObj req&);
-	static RequestObject Command2ReqObj(struct command m);
-
+	static struct command ReqObj2Command(const RequestObj& req);
+	static RequestObj Command2ReqObj(struct command m);
+	static const std::vector<uint8_t> marshallDeviceList(const std::vector<BasicDevice*> list); 
 	//Notify threads that an exit has been requested
 	void endThreads();
+
+	//Register a request callback
+	void setRequestQueueListener(RequestReceiver l);
     
     private:
         //Device list
 	std::vector<BasicDevice*> devList;
 	//Incoming Request Queue
 	std::queue<RequestObj> reqQueue;
+	
+	//RequestQueueListener
+	RequestReceiver listener;
 	
 	//Thread Saftey and control
 	std::mutex devListMutex;

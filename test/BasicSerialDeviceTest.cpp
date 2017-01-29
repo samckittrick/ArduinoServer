@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void receiver(RequestObj req)
+void receiver(const RequestObj& req)
 {
   LOG(DEBUG) << "Receiver called: " << req.toString();
 }

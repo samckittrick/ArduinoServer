@@ -33,6 +33,9 @@
 #include "ProtocolConsts.h"
 #include "LinuxSerialPacketConn.h"
 #include "CPPLogger.h"
+
+#include <iomanip>
+#include <sstream>
 class BasicSerialDevice : public BasicDevice {
 
  public:
@@ -49,7 +52,7 @@ class BasicSerialDevice : public BasicDevice {
   void commandReceived(struct command message);
 
   void processRequest(const RequestObj& req);
-  void setRequestReceiver(requestReceiver r);
+  void setRequestReceiver(RequestReceiver r);
 
   static struct command reqObj2Command(const RequestObj& req);
   static RequestObj command2ReqObj(struct command m);
@@ -62,7 +65,7 @@ class BasicSerialDevice : public BasicDevice {
   DevInfo devInfo;
   std::atomic<bool> endCond;
   std::thread readThreadObj;
-  requestReceiver receiver; 
+  RequestReceiver receiver; 
 
 };
 

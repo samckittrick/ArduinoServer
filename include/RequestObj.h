@@ -42,7 +42,7 @@ class RequestObj
   const std::vector<uint8_t>& getData() const { return data; }
   std::string toString() const { 
     std::stringstream s;
-    s << "RequestObject - Command: " << command << " Dst: " << dst << " Src: " << src;
+    s << "RequestObject - Command: " << (int)command << " Dst: " << (int)dst << " Src: " << (int)src << " Data Len: " << data.size() ;
     return s.str();
   }
   
@@ -54,12 +54,9 @@ class RequestObj
   uint8_t src;
   std::vector<uint8_t> data;
 };
-//Interface for transfering request objects between components
-class RequestQueue
-{
- public:
-  virtual void addRequest(const RequestObj& req) = 0;
-};
+
+//RequestReceiver function definition
+typedef void (*RequestReceiver)(const RequestObj& req);
 
 
 #endif 

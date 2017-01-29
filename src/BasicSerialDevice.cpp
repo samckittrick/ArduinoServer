@@ -206,7 +206,7 @@ void BasicSerialDevice::processRequest(const RequestObj& req)
   sendCommand(reqObj2Command(req));
 }
 
-void BasicSerialDevice::setRequestReceiver(requestReceiver r)
+void BasicSerialDevice::setRequestReceiver(RequestReceiver r)
 {
   receiver = r;
 }
