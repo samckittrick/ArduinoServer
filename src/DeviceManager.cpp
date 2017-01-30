@@ -175,7 +175,6 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
   int nameStringLen = 128;
   std::vector<uint8_t> data;
   //First byte is the number of objects
-  LOG(DEBUG) << "List size: " << list.size();
   data.push_back(list.size());
   
   for(int i = 0; i < list.size(); i++)
@@ -198,15 +197,6 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
 	    }
 	}
     }
-
-
-  std::stringstream ss;
-  ss<<std::hex;
-  for(std::vector<uint8_t>::iterator it = data.begin(); it != data.end(); it++)
-    {
-      ss << (int)(*it);
-    }
-  LOG(DEBUG) << ss.str();
 
   return data;
 }
