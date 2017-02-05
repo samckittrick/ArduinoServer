@@ -203,5 +203,15 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
       
 void DeviceManager::setRequestQueueListener(RequestReceiver l)
 {
+  //Set the local listener
   listener = l;
+
+  //If there are devices, set their listener too
+  if(devList.size() > 0)
+    {
+      for(std::vector<BasicDevice*>::iterator it = devList.begin(); it != devList.end(); it++)
+	{
+	  (*it)->setRequestReceiver(l);
+	}
+    }
 }
