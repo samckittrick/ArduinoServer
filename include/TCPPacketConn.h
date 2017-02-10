@@ -16,8 +16,12 @@
 */
 
 /*
-  TCPConnObj is intended to hold all of the data associated with a given connect.
-  This includes the file descriptor, data to be sent and received, and authentication status */
+  TCPConnObj is intended to hold read and write queues for each connection and provide packet framing.
+	Packet: 
+		----------------------------------------------
+		| length 2 bytes | data                      |
+		----------------------------------------------
+  */
 
 #ifndef TCPPacketConn_H
 #define TCPPacketConn_H
@@ -27,20 +31,12 @@
 #include <mutex>
 #include <ctime>
 #include <arpa/inet.h>
-#include "RequestObj.h"
 #include "CPPLogger.h"
 
 #define TIMEOUT 2
 
 #define DEFAULTQUEUESIZE 64
 #define PACKETHEADERSIZE 2
-#define PACKETDSTOFFSET 0
-#define PACKETTYPEOFFSET 1
-#define PACKETCMDOFFSET 2
-#define PACKETDATAOFFSET 4
-
-#define PACKETDATATYPE 0x01
-#define PACKETAUTHTYPE 0x02
 
 
 class TCPPacketConn
@@ -52,28 +48,19 @@ class TCPPacketConn
   ~TCPPacketConn();
   
   //Accessors
-  int getFd();
-  bool getAuthenticated();
-  void setAuthenticated(bool auth);
-  void addRequest(const RequestObj& req);
-  bool readyToWrite();
-  //int getWriteData(uint8_t *packet, int size);
-  void notifyWritten(int len);
-  void insertData(const uint8_t *buffer, int len);
+  int getFd() const;
+  bool readyToWrite() const;
+  void readData();
+  void writeData(const uint8_t *buffer, int len);
 
   //set request receiver
-  void setRequestListener(RequestReceiver r);
+  typedef void (*PacketReceiver)(const std::vector<uint8_t>& data);
+  void setPacketListener(PacketReceiver r);
   
   
 
  private:
   int fd;
-  std::atomic<bool> authenticated;
-  std::mutex RequestMutex;
-  RequestReceiver receiver;
-
-    //Data queues
-  std::queue<RequestObj> reqQueue;
   
   //read and write queues are implemented as circular queues
   uint8_t *readQueue;
@@ -85,17 +72,17 @@ class TCPPacketConn
   unsigned int headerRecv; //The header is 4 bytes long, need to handle the case where we only recv part of it
   uint32_t headerRaw;
   time_t startTime; //Time this packet read began.
-
+  
   uint8_t *writeQueue;
   unsigned int writeQueueSize;
   unsigned int writeQueueBegin;
   unsigned int writeQueueLen;
 
+  PacketReceiver *receiver;
   //resize queue
   static uint8_t* resizeQueue(uint8_t *queue, unsigned int *capacity, unsigned int *cursor, int len, int requestedLen);
   void handlePacket();
   void handleTimeout();
-  //void addPacketToWriteQueue();
 
 };
 #endif
