@@ -23,6 +23,8 @@
 		----------------------------------------------
   */
 
+//Need to add keepalive function
+
 #ifndef TCPPacketConn_H
 #define TCPPacketConn_H
 
@@ -30,8 +32,10 @@
 #include <atomic>
 #include <mutex>
 #include <ctime>
+#include <cstring>
 #include <arpa/inet.h>
 #include "CPPLogger.h"
+#include "ServerExceptions.h"
 
 #define TIMEOUT 2
 
@@ -51,7 +55,8 @@ class TCPPacketConn
   int getFd() const;
   bool readyToWrite() const;
   void readData();
-  void writeData(const uint8_t *buffer, int len);
+  void writeData();
+  void insertData(const uint8_t *buffer, int len);
 
   //set request receiver
   typedef void (*PacketReceiver)(const std::vector<uint8_t>& data);
@@ -78,7 +83,7 @@ class TCPPacketConn
   unsigned int writeQueueBegin;
   unsigned int writeQueueLen;
 
-  PacketReceiver *receiver;
+  PacketReceiver receiver;
   //resize queue
   static uint8_t* resizeQueue(uint8_t *queue, unsigned int *capacity, unsigned int *cursor, int len, int requestedLen);
   void handlePacket();

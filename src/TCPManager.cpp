@@ -113,7 +113,7 @@ void TCPManager::socketListen()
       //Add any others
       if(connList.size() > 0)
 	{
-	  for(std::vector<TCPPacketConn>::iterator it = connList.begin(); it != connList.end(); it++)
+	  for(std::vector<TCPConn>::iterator it = connList.begin(); it != connList.end(); it++)
 	    {
 	      FD_SET(it->getFd(), &readfds);
 	      
@@ -160,12 +160,13 @@ void TCPManager::socketListen()
 	  //If there are connected sockets, check them too
 	  if(connList.size() > 0)
 	    {
-	      for(std::vector<TCPPacketConn>::iterator it = connList.begin(); it != connList.end(); it++)
+	      for(std::vector<TCPConn>::iterator it = connList.begin(); it != connList.end(); it++)
 		{
 		  if(FD_ISSET(it->getFd(), &readfds))
 		    {
 		      LOG(DEBUG) << "Reading from fd: " << it->getFd();
 		      //Do some reading maake sure read doesn;t block
+		      it->readData();
 		    }
 		  
 		  if(FD_ISSET(it->getFd(), &writefds))

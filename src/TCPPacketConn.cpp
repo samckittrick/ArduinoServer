@@ -37,7 +37,6 @@ TCPPacketConn::TCPPacketConn(int f) : fd(f)
 TCPPacketConn::TCPPacketConn(const TCPPacketConn& in)
 {
   fd = in.fd;
-  authenticated = in.authenticated.load();
   receiver = in.receiver;
 
   readQueue = new uint8_t [in.readQueueSize];
@@ -72,7 +71,7 @@ TCPPacketConn::~TCPPacketConn()
 
 }
 
-int TCPPacketConn::getFd()
+int TCPPacketConn::getFd() const
 {
   return fd;
 }
@@ -108,10 +107,10 @@ void TCPPacketConn::handlePacket()
 	{
 	  receiver(req);
 	}
-	else
-    {
-      LOG(WARN) << "No packet receiver registered.";
-    }
+    else
+      {
+	LOG(WARN) << "No packet receiver registered.";
+      }
 }
 
 void TCPPacketConn::handleTimeout()
@@ -120,7 +119,111 @@ void TCPPacketConn::handleTimeout()
   LOG(WARN) << "Packet timed out";
 }
 
-bool TCPPacketConn::readyToWrite()
+bool TCPPacketConn::readyToWrite() const
 {
   return (writeQueueLen > 0);
+}
+
+void TCPPacketConn::readData()
+{
+  uint8_t buffer[DEFAULTQUEUESIZE];
+  int status = recv(fd, buffer, DEFAULTQUEUESIZE, 0);
+  if(status == -1)
+    {
+      LOG(ERROR) << "Error reading fd " << fd << ": " << strerror(errno);
+      throw CommunicationException("Error reading fd");
+    }
+
+  if(status == 0)
+    {
+      LOG(ERROR) << "Error with connection " << fd;
+      throw ConnectionException("Error with connection");
+    }
+
+
+  if((currRecvLen + status) > readQueueSize)
+    {
+      readQueue = resizeQueue(readQueue, &readQueueSize, &readQueueBegin, currRecvLen, (currRecvLen + status));
+    }
+
+  for(int i = 0; i < status; i++)
+    {
+      if(headerRecv < PACKETHEADERSIZE)
+	{
+	  startTime = time(NULL);
+	    
+	  if(headerRecv == 0)
+	    {
+	      headerRaw = buffer[i] << 8;
+	      headerRecv++;
+	    }
+	  else
+	    {
+	      headerRaw |= buffer[i];
+	      //LOG(DEBUG) << "Raw Header: " << headerRaw;
+	      currPacketLen = headerRaw;
+	      //LOG(DEBUG) << "CurrPacketLen: " << currPacketLen;
+	      headerRecv++;
+	    }
+
+	  //LOG(DEBUG) << "Receiving header";
+	}
+      else
+	{
+	  readQueue[(readQueueBegin + currRecvLen) % readQueueSize] = buffer[i];
+	  currRecvLen++;
+	}
+
+      if(currRecvLen == currPacketLen) //If we got the whole packet
+	{
+	  LOG(DEBUG) << "Received packet";
+	  handlePacket();
+	  readQueueBegin =(readQueueBegin + currPacketLen) % readQueueSize;
+	  headerRecv = 0;
+	  currRecvLen = 0;
+	}
+
+      //LOG(DEBUG) << "Diff time: " << difftime(time(NULL), startTime);
+      if(difftime(time(NULL), startTime) >= TIMEOUT) //If the timeout kicks in, the connection will have to resync
+	{
+	  handleTimeout();
+	  readQueueBegin = (readQueueBegin + currRecvLen) % readQueueSize;
+	  headerRecv = 0;
+	  currRecvLen = 0;
+	}
+    }
+}
+
+
+void TCPPacketConn::writeData()
+{
+  uint8_t buffer[writeQueueSize];
+  for(int i = 0; i < writeQueueLen; i++)
+    {
+      buffer[i] = writeQueue[(writeQueueBegin + i) % writeQueueSize];
+    }
+  
+  int status = send(fd, buffer, writeQueueLen, 0);
+  if(status == -1)
+    {
+      LOG(ERROR) << "Error writing to socket " << fd << ": " << strerror(errno);
+      throw CommunicationException("Error writing to socket");
+    }
+
+  writeQueueBegin = (writeQueueBegin + status) % writeQueueSize;
+  writeQueueLen -= status;
+}
+
+
+void TCPPacketConn::insertData(const uint8_t *buffer, int len)
+{
+  if((writeQueueLen + len) > writeQueueSize)
+    {
+      writeQueue = resizeQueue(writeQueue, &writeQueueSize, &writeQueueBegin, writeQueueLen, writeQueueLen + len);
+    }
+
+  for(int i = 0; i < len; i++)
+    {
+      writeQueue[(writeQueueBegin + i) % writeQueueSize] = buffer[i];
+    }
 }

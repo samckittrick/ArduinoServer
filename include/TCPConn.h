@@ -1,6 +1,5 @@
-
 /*
-    TCPManager for Arduino Server
+  TCPConn Class
     Copyright (C) 2017 Scott McKittrick
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,55 +11,45 @@
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
-    Created by: Scott McKittrick, Jan. 29th 2017
-    
+
+    Created by: Scott McKittrick, Feb. 11th 2017
 */
 
-#ifndef TCPMANAGER_H
-#define TCPMANAGER_H
+//TCPConn class: provide request management for individual connections
+
+#ifndef TCPCONN_H
+#define TCPCONN_H
 
 #include <vector>
-#include <queue>
-#include <thread>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <errno.h>
-#include <string.h>
-#include <atomic>
 #include "RequestObj.h"
-#include "CPPLogger.h"
-#include "ServerExceptions.h"
 #include "TCPPacketConn.h"
+#include "ServerExceptions.h"
+#include "CPPLogger.h"
 
-#define LISTENERBACKLOG 10
+#define AUTHPACKETTYPE 0x01
+#define DATAPACKETTYPE 0x02
 
-class TCPManager
+class TCPConn
 {
  public:
-  TCPManager(unsigned int p);
-  ~TCPManager();
+  TCPConn(int f);
+  ~TCPConn();
 
-  void init();
+  void sendRequest(const RequestObj& req);
+  void setRequestReceiver(RequestReceiver r);
+  void handlePacket(const std::vector<uint8_t>& data);
   
-  //Thread for listening on designated port
-  void socketListen();
+  bool isAuthenticated() const;
 
-  //Register a request callback
-  void setRequestQueueListener(RequestReceiver l);
+  void readData();
+  void writeData();
+  int getFd() const;
 
  private:
-  unsigned int port;
-  int sockfd;
-  std::atomic<bool> exitCondition;
-
-  //Connection Object list
-  std::vector<TCPConn> connList;
+  TCPPacketConn conn;
+  RequestReceiver receiver;
+  bool authenticated;
   
-  //Request Queue callback
-  RequestReceiver listener;
-
-};
+};  
 
 #endif
