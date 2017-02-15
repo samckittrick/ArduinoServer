@@ -51,17 +51,17 @@ class TCPPacketConn
   TCPPacketConn(const TCPPacketConn& in);
   ~TCPPacketConn();
   
-  //Accessors
+  //Low level packet framing & control
   int getFd() const;
   bool readyToWrite() const;
   void readData();
   void writeData();
-  void insertData(const uint8_t *buffer, int len);
 
-  //set request receiver
-  typedef void (*PacketReceiver)(const std::vector<uint8_t>& data);
-  void setPacketListener(PacketReceiver r);
   
+  //Higher level request object translation
+  void sendRequest(const RequestObj& req);
+  void setRequestReceiver(RequestReceiver r);
+  bool isAuthenticated() const;
   
 
  private:
@@ -82,12 +82,14 @@ class TCPPacketConn
   unsigned int writeQueueSize;
   unsigned int writeQueueBegin;
   unsigned int writeQueueLen;
+  void insertData(const uint8_t *buffer, int len);
 
-  PacketReceiver receiver;
   //resize queue
   static uint8_t* resizeQueue(uint8_t *queue, unsigned int *capacity, unsigned int *cursor, int len, int requestedLen);
   void handlePacket();
   void handleTimeout();
-
+  
+  RequestReceiver receiver;
+  bool authenticated;
 };
 #endif

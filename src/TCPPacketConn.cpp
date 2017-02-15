@@ -105,7 +105,8 @@ void TCPPacketConn::handlePacket()
   
     if(receiver != NULL)
 	{
-	  receiver(req);
+	  //receiver(req);
+	  LOG(DEBUG) << "Packet Received";
 	}
     else
       {
@@ -226,4 +227,19 @@ void TCPPacketConn::insertData(const uint8_t *buffer, int len)
     {
       writeQueue[(writeQueueBegin + i) % writeQueueSize] = buffer[i];
     }
+}
+
+void TCPConn::sendRequest(const RequestObj& req)
+{
+  LOG(DEBUG) << "Writing Packet";
+}
+
+void TCPConn::setRequestReceiver(RequestReceiver r)
+{
+  receiver = r;
+}
+
+bool TCPConn::isAuthenticated() const
+{
+  return authenticated;
 }
