@@ -94,12 +94,14 @@ void TCPManager::init()
     }
 
   //Start read thread
-  socketListen();
+  readThread = std::thread(&TCPManager::socketListen, this);
+  //socketListen();
 
 }
 
 void TCPManager::socketListen()
 {
+  LOG(INFO) << "Starting listen thread";
   fd_set readfds;
   fd_set writefds;
   struct timeval tv;
@@ -107,13 +109,14 @@ void TCPManager::socketListen()
   while(!exitCondition.load())
     {
       //add the listening socket fd to the set
+      FD_ZERO(&readfds);
       FD_SET(sockfd, &readfds);
       int highFd = sockfd;
 
       //Add any others
       if(connList.size() > 0)
 	{
-	  for(std::vector<TCPConn>::iterator it = connList.begin(); it != connList.end(); it++)
+	  for(std::vector<TCPPacketConn>::iterator it = connList.begin(); it != connList.end(); it++)
 	    {
 	      FD_SET(it->getFd(), &readfds);
 	      
@@ -128,8 +131,11 @@ void TCPManager::socketListen()
       //set timeout
       tv.tv_sec = 5;
 
+      LOG(DEBUG) << "FDs set, listening...";
+
       //Select the sockets
       status = select(highFd + 1, &readfds, &writefds, NULL, &tv);
+      LOG(DEBUG) << "Select returned";
       if(status == -1)
 	{
 	  LOG(ERROR) << "Error selecting socket: " << strerror(errno);
@@ -160,13 +166,23 @@ void TCPManager::socketListen()
 	  //If there are connected sockets, check them too
 	  if(connList.size() > 0)
 	    {
-	      for(std::vector<TCPConn>::iterator it = connList.begin(); it != connList.end(); it++)
+	      for(std::vector<TCPPacketConn>::iterator it = connList.begin(); it != connList.end(); it++)
 		{
 		  if(FD_ISSET(it->getFd(), &readfds))
 		    {
 		      LOG(DEBUG) << "Reading from fd: " << it->getFd();
 		      //Do some reading maake sure read doesn;t block
-		      it->readData();
+		      try
+			{
+			  it->readData();
+			}
+		      catch(ConnectionException e)
+			{
+			  LOG(INFO) << "Lost connection to " << it->getFd();
+			  close(it->getFd());
+			  connList.erase(it);
+			  break;
+			}
 		    }
 		  
 		  if(FD_ISSET(it->getFd(), &writefds))
@@ -187,3 +203,8 @@ void TCPManager::setRequestQueueListener(RequestReceiver l)
 }
 
 
+void TCPManager::setExitCondition(bool cond)
+{
+  exitCondition = cond;
+  readThread.join();
+}

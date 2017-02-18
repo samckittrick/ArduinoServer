@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <string.h>
 #include <atomic>
+#include <unistd.h>
 #include "RequestObj.h"
 #include "CPPLogger.h"
 #include "ServerExceptions.h"
@@ -50,16 +51,20 @@ class TCPManager
   //Register a request callback
   void setRequestQueueListener(RequestReceiver l);
 
+  void setExitCondition(bool cond);
+
  private:
   unsigned int port;
   int sockfd;
   std::atomic<bool> exitCondition;
 
   //Connection Object list
-  std::vector<TCPConn> connList;
+  std::vector<TCPPacketConn> connList;
   
   //Request Queue callback
   RequestReceiver listener;
+
+  std::thread readThread;
 
 };
 

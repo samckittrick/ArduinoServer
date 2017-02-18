@@ -36,6 +36,7 @@
 #include <arpa/inet.h>
 #include "CPPLogger.h"
 #include "ServerExceptions.h"
+#include "RequestObj.h"
 
 #define TIMEOUT 2
 
@@ -50,6 +51,7 @@ class TCPPacketConn
   TCPPacketConn(int f);
   TCPPacketConn(const TCPPacketConn& in);
   ~TCPPacketConn();
+  TCPPacketConn& operator=(TCPPacketConn&& other);
   
   //Low level packet framing & control
   int getFd() const;
@@ -91,5 +93,7 @@ class TCPPacketConn
   
   RequestReceiver receiver;
   bool authenticated;
+
+  std::mutex queueMutex;
 };
 #endif
