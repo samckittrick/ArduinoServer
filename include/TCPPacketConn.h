@@ -56,14 +56,9 @@ class TCPPacketConn
   //Low level packet framing & control
   int getFd() const;
   bool readyToWrite() const;
-  void readData();
+  int readData(std::vector<uint8_t>& packet);
   void writeData();
 
-  
-  //Higher level request object translation
-  void sendRequest(const RequestObj& req);
-  void setRequestReceiver(RequestReceiver r);
-  bool isAuthenticated() const;
   
 
  private:
@@ -88,7 +83,7 @@ class TCPPacketConn
 
   //resize queue
   static uint8_t* resizeQueue(uint8_t *queue, unsigned int *capacity, unsigned int *cursor, int len, int requestedLen);
-  void handlePacket();
+  void handlePacket(std::vector<uint8_t>& data);
   void handleTimeout();
   
   RequestReceiver receiver;

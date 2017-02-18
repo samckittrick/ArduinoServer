@@ -15,6 +15,8 @@
     Created by: Scott McKittrick, Feb. 3rd 2017
 */
 
+//TCPPacketConn provides packet framing for an individual connection
+
 #include "TCPPacketConn.h"
 
 TCPPacketConn::TCPPacketConn(int f) : fd(f)
@@ -120,24 +122,13 @@ uint8_t* TCPPacketConn::resizeQueue(uint8_t *queue, unsigned int *capacity, unsi
 }
 
 
-void TCPPacketConn::handlePacket()
+void TCPPacketConn::handlePacket(std::vector<uint8_t>& data)
 {
-	std::vector<uint8_t> req;
 	for(int i = 0; i < currRecvLen; i++)
 	{
-		req.push_back(readQueue[(readQueueBegin + i) % readQueueSize]);
-		printf("%02X", readQueue[(readQueueBegin + i) % readQueueSize]);
+		data.push_back(readQueue[(readQueueBegin + i) % readQueueSize]);
+		//printf("%02X", readQueue[(readQueueBegin + i) % readQueueSize]);
 	}
-  
-    if(receiver != NULL)
-	{
-	  //receiver(req);
-	  LOG(DEBUG) << "Packet Received";
-	}
-    else
-      {
-	LOG(WARN) << "No packet receiver registered." << fd;
-      }
 }
 
 void TCPPacketConn::handleTimeout()
@@ -212,6 +203,8 @@ void TCPPacketConn::readData()
 	  headerRaw = 0;
 	  currRecvLen = 0;
 	  currPacketLen = 0;
+	  //return true that a packet has been received
+	  return 1;
 	}
 
       //LOG(DEBUG) << "Diff time: " << difftime(time(NULL), startTime);
@@ -225,6 +218,8 @@ void TCPPacketConn::readData()
 	  currPacketLen = 0;
 	}
     }
+	//If we get here, no packet has been received yet
+	return 0;
 }
 
 

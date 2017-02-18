@@ -16,39 +16,35 @@
 */
 
 #include "TCPConn.h"
-
-TCPConn::TCPConn(int fd) : conn(fd) 
-{
-  conn.setPacketListener(&TCPConn::handlePacket);
-}
+TCPConn::TCPConn(int f) : conn(f) {}
 
 TCPConn::~TCPConn() {}
 
-
-void TCPConn::setRequestReceiver(RequestReceiver r)
-{
-  receiver = r;
+TCPConn& operator=(TCPConn&& other) {
+	receiver = other.receiver;
+	authenticated = other.authenticated;
+	conn = other.conn;
 }
 
-
-bool TCPConn::isAuthenticated() const
+int getFd()
 {
-  return authenticated;
+	return conn.getFd();
 }
 
-void TCPConn::readData()
-{
-  conn.readData();
-}
+void writeData() {}
 
-void TCPConn::writeData()
+void readData()
 {
-  conn.writeData();
-}
-
-void TCPConn::handlePacket(const std::vector<uint8_t>& data)
-{
-  LOG(DEBUG) << "Packet received";
+	std::vector<uint8_t> packet;
+	int status = conn.readData(packet);
+	if(status == 0)
+	{
+		return;
+	}
+	else
+	{
+		LOG(DEBUG) << "Packet received in conn";
+	}
 }
 
 void TCPConn::sendRequest(const RequestObj& req)
@@ -56,9 +52,12 @@ void TCPConn::sendRequest(const RequestObj& req)
   LOG(DEBUG) << "Writing Packet";
 }
 
-
-int TCPConn::getFd() const
+void TCPConn::setRequestReceiver(RequestReceiver r)
 {
-  return conn.getFd();
+  receiver = r;
 }
 
+bool TCPConn::isAuthenticated() const
+{
+  return authenticated;
+}

@@ -31,25 +31,23 @@
 
 class TCPConn
 {
- public:
-  TCPConn(int f);
-  ~TCPConn();
+	public:
+		TCPConn(int f);
+		~TCPConn();
+		TCPConn& operator=(TCPConn&& other)
+		int getFd() const;
+		void readData();
+		void writeData();
 
-  void sendRequest(const RequestObj& req);
-  void setRequestReceiver(RequestReceiver r);
-  void handlePacket(const std::vector<uint8_t>& data);
-  
-  bool isAuthenticated() const;
-
-  void readData();
-  void writeData();
-  int getFd() const;
-
- private:
-  TCPPacketConn conn;
-  RequestReceiver receiver;
-  bool authenticated;
-  
+		  //Higher level request object translation
+		void sendRequest(const RequestObj& req);
+		void setRequestReceiver(RequestReceiver r);
+		bool isAuthenticated() const;
+		
+	private:
+		RequestReceiver receiver;
+		bool authenticated;
+		TCPPacketConn conn;
 };  
 
 #endif
