@@ -5,10 +5,13 @@ BUILDDIR=build
 
 all:
 
+$(BUILDDIR)/TCPConn.o: include/TCPConn.h src/TCPConn.cpp CPPLogger/CPPLogger.h include/TCPPacketConn.h $(BUILDDIR)/TCPPacketConn.o
+	$(CC) $(CFLAGS) $(INCLUDE) -c src/TCPConn.cpp -o $@
+
 $(BUILDDIR)/TCPPacketConn.o: include/TCPPacketConn.h src/TCPPacketConn.cpp CPPLogger/CPPLogger.h
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/TCPPacketConn.cpp -o $@
 
-$(BUILDDIR)/TCPManager.o: include/TCPManager.h src/TCPManager.cpp include/RequestObj.h CPPLogger/CPPLogger.h include/TCPPacketConn.h $(BUILDDIR)/TCPPacketConn.o
+$(BUILDDIR)/TCPManager.o: include/TCPManager.h src/TCPManager.cpp include/RequestObj.h CPPLogger/CPPLogger.h include/TCPConn.h $(BUILDDIR)/TCPConn.o
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/TCPManager.cpp -o $@
 
 $(BUILDDIR)/DeviceManager.o: $(BUILDDIR)/BasicSerialDevice.o include/DeviceManager.h include/ProtocolConsts.h include/BasicDevice.h src/DeviceManager.cpp include/RequestObj.h CPPLogger/CPPLogger.h

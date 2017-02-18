@@ -33,7 +33,7 @@
 #include "RequestObj.h"
 #include "CPPLogger.h"
 #include "ServerExceptions.h"
-#include "TCPPacketConn.h"
+#include "TCPConn.h"
 
 #define LISTENERBACKLOG 10
 
@@ -59,7 +59,7 @@ class TCPManager
   std::atomic<bool> exitCondition;
 
   //Connection Object list
-  std::vector<TCPPacketConn> connList;
+  std::vector<TCPConn> connList;
   
   //Request Queue callback
   RequestReceiver listener;

@@ -142,7 +142,7 @@ bool TCPPacketConn::readyToWrite() const
   return (writeQueueLen > 0);
 }
 
-void TCPPacketConn::readData()
+int TCPPacketConn::readData(std::vector<uint8_t>& packet)
 {
   std::lock_guard<std::mutex> lockGuard(queueMutex);
   uint8_t buffer[DEFAULTQUEUESIZE];
@@ -197,7 +197,7 @@ void TCPPacketConn::readData()
       if((currRecvLen == currPacketLen) & (currRecvLen != 0)) //If we got the whole packet
 	{
 	  LOG(DEBUG) << "Received packet";
-	  handlePacket();
+	  handlePacket(packet);
 	  readQueueBegin =(readQueueBegin + currPacketLen) % readQueueSize;
 	  headerRecv = 0;
 	  headerRaw = 0;
@@ -256,19 +256,4 @@ void TCPPacketConn::insertData(const uint8_t *buffer, int len)
     {
       writeQueue[(writeQueueBegin + i) % writeQueueSize] = buffer[i];
     }
-}
-
-void TCPPacketConn::sendRequest(const RequestObj& req)
-{
-  LOG(DEBUG) << "Writing Packet";
-}
-
-void TCPPacketConn::setRequestReceiver(RequestReceiver r)
-{
-  receiver = r;
-}
-
-bool TCPPacketConn::isAuthenticated() const
-{
-  return authenticated;
 }

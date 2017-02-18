@@ -18,22 +18,27 @@
 #include "TCPConn.h"
 TCPConn::TCPConn(int f) : conn(f) {}
 
+TCPConn::TCPConn(const TCPConn& other) : conn(other.conn)
+{
+  authenticated = other.authenticated;
+  receiver = other.receiver;
+}
 TCPConn::~TCPConn() {}
 
-TCPConn& operator=(TCPConn&& other) {
+TCPConn& TCPConn::operator=(TCPConn&& other) {
 	receiver = other.receiver;
 	authenticated = other.authenticated;
-	conn = other.conn;
+	conn = std::move(other.conn);
 }
 
-int getFd()
+int TCPConn::getFd() const
 {
 	return conn.getFd();
 }
 
-void writeData() {}
+void TCPConn::writeData() {}
 
-void readData()
+void TCPConn::readData()
 {
 	std::vector<uint8_t> packet;
 	int status = conn.readData(packet);

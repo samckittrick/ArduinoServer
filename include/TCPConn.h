@@ -33,8 +33,9 @@ class TCPConn
 {
 	public:
 		TCPConn(int f);
+		TCPConn(const TCPConn& other); 
 		~TCPConn();
-		TCPConn& operator=(TCPConn&& other)
+		TCPConn& operator=(TCPConn&& other);
 		int getFd() const;
 		void readData();
 		void writeData();
