@@ -22,6 +22,8 @@
 TCPPacketConn::TCPPacketConn(int f) : fd(f)
 {
 
+  LOG(DEBUG) << "Constructor";
+
   readQueue = new uint8_t [DEFAULTQUEUESIZE];
   readQueueSize = DEFAULTQUEUESIZE;
   readQueueBegin = 0;
@@ -38,6 +40,7 @@ TCPPacketConn::TCPPacketConn(int f) : fd(f)
 
 TCPPacketConn::TCPPacketConn(const TCPPacketConn& in)
 {
+  LOG(DEBUG) << "Packet Conn Copy Constructor";
   fd = in.fd;
   receiver = in.receiver;
 
@@ -75,6 +78,7 @@ TCPPacketConn::~TCPPacketConn()
 
 TCPPacketConn& TCPPacketConn::operator=(TCPPacketConn&& other)
 {
+  LOG(DEBUG) << "Move Assignment operator";
   fd = other.fd;
   other.fd = -1;
   receiver = other.receiver;
@@ -139,7 +143,9 @@ void TCPPacketConn::handleTimeout()
 
 bool TCPPacketConn::readyToWrite() const
 {
-  return (writeQueueLen > 0);
+  LOG(DEBUG) << "Are we ready to write?";
+  LOG(DEBUG) << "WriteQueueLen for fd " << fd << " is " << writeQueueLen;
+  return writeQueueLen > 0;
 }
 
 int TCPPacketConn::readData(std::vector<uint8_t>& packet)
@@ -225,6 +231,7 @@ int TCPPacketConn::readData(std::vector<uint8_t>& packet)
 
 void TCPPacketConn::writeData()
 {
+  LOG(DEBUG) << "Writing to Socket";
   std::lock_guard<std::mutex> lockGuard(queueMutex);
   uint8_t buffer[writeQueueSize];
   for(int i = 0; i < writeQueueLen; i++)
@@ -238,6 +245,7 @@ void TCPPacketConn::writeData()
       LOG(ERROR) << "Error writing to socket " << fd << ": " << strerror(errno);
       throw CommunicationException("Error writing to socket");
     }
+  LOG(DEBUG) << "Bytes written: " << status;
 
   writeQueueBegin = (writeQueueBegin + status) % writeQueueSize;
   writeQueueLen -= status;
@@ -246,14 +254,22 @@ void TCPPacketConn::writeData()
 
 void TCPPacketConn::insertData(const uint8_t *buffer, int len)
 {
+  LOG(DEBUG) << "Inserting Data";
   std::lock_guard<std::mutex> lockGuard(queueMutex);
-  if((writeQueueLen + len) > writeQueueSize)
+  if((writeQueueLen + len + PACKETHEADERSIZE) > writeQueueSize)
     {
-      writeQueue = resizeQueue(writeQueue, &writeQueueSize, &writeQueueBegin, writeQueueLen, writeQueueLen + len);
+      writeQueue = resizeQueue(writeQueue, &writeQueueSize, &writeQueueBegin, writeQueueLen, writeQueueLen + len + PACKETHEADERSIZE);
     }
-
+  
+  writeQueue[(writeQueueBegin + writeQueueLen)%writeQueueSize] = len >> 8;
+  writeQueueLen++;
+  writeQueue[(writeQueueBegin + writeQueueLen)%writeQueueSize] = len & 0xFF;
+  writeQueueLen++;
   for(int i = 0; i < len; i++)
     {
-      writeQueue[(writeQueueBegin + i) % writeQueueSize] = buffer[i];
+      writeQueue[(writeQueueBegin + writeQueueLen) % writeQueueSize] = buffer[i];
+      writeQueueLen++;
     }
+
+  LOG(DEBUG) << "Write Queue Length is now: " << writeQueueLen << " for fd " << fd;;
 }

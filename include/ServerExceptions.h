@@ -45,4 +45,15 @@ struct CommunicationException : public std::exception {
   }
 };
 
+struct IDNotFoundException : public std::exception {
+  std::string message;
+  IDNotFoundException(std::string m) {
+    message = m;
+  }
+
+  const char * what() {
+    return message.c_str();
+  }
+};
+
 #endif

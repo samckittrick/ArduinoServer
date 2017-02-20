@@ -110,6 +110,7 @@ void TCPManager::socketListen()
     {
       //add the listening socket fd to the set
       FD_ZERO(&readfds);
+      FD_ZERO(&writefds);
       FD_SET(sockfd, &readfds);
       int highFd = sockfd;
 
@@ -122,7 +123,12 @@ void TCPManager::socketListen()
 	      
 	      //Only set the write fd if there is some data to write.
 	      //if you set it all the time, select will always return immediately. 
-	      //FD_SET(it->fd, &writefds);
+	      if(it->readyToWrite())
+		{
+		  LOG(DEBUG) << it->getFd() << " is ready to write";
+		  FD_SET(it->getFd(), &writefds);
+		}
+
 	      if(it->getFd() > highFd)
 		highFd = it->getFd();
 	    }
@@ -159,6 +165,7 @@ void TCPManager::socketListen()
 	      else
 		{
 		  connList.emplace_back(new_fd);
+		  connList.back().setRequestReceiver(listener);
 		  LOG(INFO) << "Accepted connection from: " << "write function to get string. " << "Assigned local address: " << new_fd;
 		}
 	    }
@@ -188,7 +195,7 @@ void TCPManager::socketListen()
 		  if(FD_ISSET(it->getFd(), &writefds))
 		    {
 		      LOG(DEBUG) << "Writing to fd: " << it->getFd();
-		      //do some writing
+		      it->writeData();
 		    }
 		}
 	    }
@@ -200,6 +207,14 @@ void TCPManager::socketListen()
 void TCPManager::setRequestQueueListener(RequestReceiver l)
 {
   listener = l;
+
+  if(connList.size() > 0)
+    {
+      for(std::vector<TCPConn>::iterator it = connList.begin(); it != connList.end(); it++)
+	{
+	  it->setRequestReceiver(l);
+	}
+    }
 }
 
 
@@ -207,4 +222,35 @@ void TCPManager::setExitCondition(bool cond)
 {
   exitCondition = cond;
   readThread.join();
+  for(std::vector<TCPConn>::iterator it = connList.begin(); it != connList.end(); it++)
+    {
+      close(it->getFd());
+    }
+  close(sockfd);
+}
+
+TCPConn& TCPManager::getConnById(int id)
+{
+  for(std::vector<TCPConn>::iterator it = connList.begin(); it != connList.end(); it++)
+    {
+      if(it->getFd() == id)
+	{
+	  LOG(DEBUG) << "Found Connection";
+	  return *it;
+	}
+    }
+  throw IDNotFoundException("Device Id not found");
+}
+
+void TCPManager::addRequest(const RequestObj& req)
+{
+  try
+    {
+      TCPConn& conn = getConnById(req.getDest());
+      conn.sendRequest(req);
+    }
+  catch(IDNotFoundException e)
+    {
+      LOG(ERROR) << "Conn Id " << req.getDest() << " not found.";
+    }
 }

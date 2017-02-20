@@ -59,6 +59,9 @@ class TCPPacketConn
   int readData(std::vector<uint8_t>& packet);
   void writeData();
 
+  void insertData(const uint8_t *buffer, int len);
+
+
   
 
  private:
@@ -79,7 +82,6 @@ class TCPPacketConn
   unsigned int writeQueueSize;
   unsigned int writeQueueBegin;
   unsigned int writeQueueLen;
-  void insertData(const uint8_t *buffer, int len);
 
   //resize queue
   static uint8_t* resizeQueue(uint8_t *queue, unsigned int *capacity, unsigned int *cursor, int len, int requestedLen);

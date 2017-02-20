@@ -39,6 +39,7 @@ class TCPConn
 		int getFd() const;
 		void readData();
 		void writeData();
+		bool readyToWrite();
 
 		  //Higher level request object translation
 		void sendRequest(const RequestObj& req);

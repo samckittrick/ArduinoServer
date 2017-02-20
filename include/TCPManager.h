@@ -50,6 +50,7 @@ class TCPManager
 
   //Register a request callback
   void setRequestQueueListener(RequestReceiver l);
+  void addRequest(const RequestObj& req);
 
   void setExitCondition(bool cond);
 
@@ -60,6 +61,7 @@ class TCPManager
 
   //Connection Object list
   std::vector<TCPConn> connList;
+  TCPConn& getConnById(int id);
   
   //Request Queue callback
   RequestReceiver listener;
