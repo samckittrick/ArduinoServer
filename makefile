@@ -1,9 +1,15 @@
 CC=g++
-CFLAGS=-pthread -std=c++11 $(DEBUGSYM) 
+CFLAGS=-pthread -lcrypto -std=c++11 $(DEBUGSYM) 
 INCLUDE=-Iinclude/ -ISerialPacketConn/include/ -ICPPLogger/
 BUILDDIR=build
 
 all:
+
+$(BUILDDIR)/Authenticator.o: include/Authenticator.h include/AuthenticationScheme.h src/Authenticator.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c src/Authenticator.cpp -o $@
+
+$(BUILDDIR)/SharedSecretScheme.o: include/AuthenticationScheme.h include/SharedSecretScheme.h src/SharedSecretScheme.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c src/SharedSecretScheme.cpp -o $@
 
 $(BUILDDIR)/TCPConn.o: include/TCPConn.h src/TCPConn.cpp CPPLogger/CPPLogger.h include/TCPPacketConn.h $(BUILDDIR)/TCPPacketConn.o
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/TCPConn.cpp -o $@

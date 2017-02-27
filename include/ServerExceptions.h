@@ -56,4 +56,26 @@ struct IDNotFoundException : public std::exception {
   }
 };
 
+struct AuthenticationFailedException : public std::exception {
+  std::string message;
+  AuthenticationFailedException(std::string m) {
+    message = m;
+  }
+
+  const char * what() {
+    return message.c_str();
+  }
+};
+
+struct AuthenticationSchemeNotFoundException : public std::exception {
+  std::string message;
+  AuthenticationSchemeNotFoundException(std::string m) {
+    message = m;
+  }
+
+  const char * what() {
+    return message.c_str();
+  }
+};
+
 #endif

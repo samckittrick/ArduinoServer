@@ -1,9 +1,12 @@
 CC=g++
 export DEBUGSYM=-g
-CFLAGS=-pthread -std=c++11 $(DEBUGSYM)
+CFLAGS=-pthread -lcrypto -std=c++11 $(DEBUGSYM)
 INCLUDE=-I../include/ -I../SerialPacketConn/include/ -I../CPPLogger/
 
 all: DeviceManagerTest BasicSerialDeviceTest TCPManagerTest TCPPacketConnTest
+
+AuthenticatorTest: Authenticator.o SharedSecretScheme.o AuthenticatorTest.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) ../build/* AuthenticatorTest.cpp -o $@
 
 TCPPacketConnTest: TCPPacketConn.o TCPPacketConnTest.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) ../build/* TCPPacketConnTest.cpp -o $@
@@ -33,8 +36,18 @@ TCPManager.o:
 TCPPacketConn.o:
 	$(MAKE) -C .. build/TCPPacketConn.o
 
+.PHONY: Authenticator.o
+Authenticator.o:
+	$(MAKE) -C .. build/Authenticator.o
+
+.PHONY: SharedSecretScheme.o
+SharedSecretScheme.o:
+	$(MAKE) -C .. build/SharedSecretScheme.o
+
 clean:
 	rm -f BasicSerialDeviceTest
 	rm -f DeviceManagerTest
 	rm -f TCPManagerTest
+	rm -f TCPPacketConnTest
+	rm -f AuthenticatorTest
 	$(MAKE) -C .. clean
