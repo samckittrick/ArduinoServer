@@ -1,12 +1,19 @@
 #include <iostream>
 #include "CPPLogger.h"
 #include "TCPManager.h"
+#include "Authenticator.h"
+#include "SharedSecretScheme.h"
 
 using namespace std;
 
 int main()
 {
   CPPLogger::getLog().setLogLevel(DEBUG);
+
+  //Initialize the authenticator
+  SharedSecretScheme::setSharedSecret("SECRET");
+  SharedSecretSchemeFactory *SScheme = new SharedSecretSchemeFactory();
+  Authenticator::registerAuthenticationScheme(SScheme->getTag(), SScheme);
 
   TCPManager mgr(50001);
   mgr.init();

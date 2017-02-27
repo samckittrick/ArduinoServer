@@ -11,7 +11,7 @@ $(BUILDDIR)/Authenticator.o: include/Authenticator.h include/AuthenticationSchem
 $(BUILDDIR)/SharedSecretScheme.o: include/AuthenticationScheme.h include/SharedSecretScheme.h src/SharedSecretScheme.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/SharedSecretScheme.cpp -o $@
 
-$(BUILDDIR)/TCPConn.o: include/TCPConn.h src/TCPConn.cpp CPPLogger/CPPLogger.h include/TCPPacketConn.h $(BUILDDIR)/TCPPacketConn.o
+$(BUILDDIR)/TCPConn.o: include/TCPConn.h src/TCPConn.cpp CPPLogger/CPPLogger.h include/TCPPacketConn.h include/Authenticator.h $(BUILDDIR)/Authenticator.o $(BUILDDIR)/TCPPacketConn.o
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/TCPConn.cpp -o $@
 
 $(BUILDDIR)/TCPPacketConn.o: include/TCPPacketConn.h src/TCPPacketConn.cpp CPPLogger/CPPLogger.h

@@ -125,7 +125,7 @@ void TCPManager::socketListen()
 	      //if you set it all the time, select will always return immediately. 
 	      if(it->readyToWrite())
 		{
-		  LOG(DEBUG) << it->getFd() << " is ready to write";
+		  //LOG(DEBUG) << it->getFd() << " is ready to write";
 		  FD_SET(it->getFd(), &writefds);
 		}
 
@@ -137,18 +137,18 @@ void TCPManager::socketListen()
       //set timeout
       tv.tv_sec = 5;
 
-      LOG(DEBUG) << "FDs set, listening...";
+      //LOG(DEBUG) << "FDs set, listening...";
 
       //Select the sockets
       status = select(highFd + 1, &readfds, &writefds, NULL, &tv);
-      LOG(DEBUG) << "Select returned";
+      //LOG(DEBUG) << "Select returned";
       if(status == -1)
 	{
 	  LOG(ERROR) << "Error selecting socket: " << strerror(errno);
 	}
       else if(status == 0)
 	{
-	  LOG(DEBUG) << "No data read, reselecting...";
+	  //LOG(DEBUG) << "No data read, reselecting...";
 	}
       else
 	{
@@ -177,7 +177,7 @@ void TCPManager::socketListen()
 		{
 		  if(FD_ISSET(it->getFd(), &readfds))
 		    {
-		      LOG(DEBUG) << "Reading from fd: " << it->getFd();
+		      //LOG(DEBUG) << "Reading from fd: " << it->getFd();
 		      //Do some reading maake sure read doesn;t block
 		      try
 			{
@@ -194,7 +194,7 @@ void TCPManager::socketListen()
 		  
 		  if(FD_ISSET(it->getFd(), &writefds))
 		    {
-		      LOG(DEBUG) << "Writing to fd: " << it->getFd();
+		      //LOG(DEBUG) << "Writing to fd: " << it->getFd();
 		      it->writeData();
 		    }
 		}

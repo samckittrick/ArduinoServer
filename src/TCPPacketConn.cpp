@@ -22,7 +22,7 @@
 TCPPacketConn::TCPPacketConn(int f) : fd(f)
 {
 
-  LOG(DEBUG) << "Constructor";
+  //LOG(DEBUG) << "Constructor";
 
   readQueue = new uint8_t [DEFAULTQUEUESIZE];
   readQueueSize = DEFAULTQUEUESIZE;
@@ -40,7 +40,7 @@ TCPPacketConn::TCPPacketConn(int f) : fd(f)
 
 TCPPacketConn::TCPPacketConn(const TCPPacketConn& in)
 {
-  LOG(DEBUG) << "Packet Conn Copy Constructor";
+  //LOG(DEBUG) << "Packet Conn Copy Constructor";
   fd = in.fd;
   receiver = in.receiver;
 
@@ -143,8 +143,8 @@ void TCPPacketConn::handleTimeout()
 
 bool TCPPacketConn::readyToWrite() const
 {
-  LOG(DEBUG) << "Are we ready to write?";
-  LOG(DEBUG) << "WriteQueueLen for fd " << fd << " is " << writeQueueLen;
+  //LOG(DEBUG) << "Are we ready to write?";
+  //LOG(DEBUG) << "WriteQueueLen for fd " << fd << " is " << writeQueueLen;
   return writeQueueLen > 0;
 }
 
@@ -187,7 +187,7 @@ int TCPPacketConn::readData(std::vector<uint8_t>& packet)
 	      headerRaw |= buffer[i];
 	      //LOG(DEBUG) << "Raw Header: " << headerRaw;
 	      currPacketLen = headerRaw;
-	      LOG(DEBUG) << "CurrPacketLen: " << currPacketLen;
+	      //LOG(DEBUG) << "CurrPacketLen: " << currPacketLen;
 	      headerRecv++;
 	    }
 
@@ -199,10 +199,10 @@ int TCPPacketConn::readData(std::vector<uint8_t>& packet)
 	  currRecvLen++;
 	}
 
-      LOG(DEBUG) << "CurrRecvLen: " << currRecvLen;
+      //LOG(DEBUG) << "CurrRecvLen: " << currRecvLen;
       if((currRecvLen == currPacketLen) & (currRecvLen != 0)) //If we got the whole packet
 	{
-	  LOG(DEBUG) << "Received packet";
+	  //LOG(DEBUG) << "Received packet";
 	  handlePacket(packet);
 	  readQueueBegin =(readQueueBegin + currPacketLen) % readQueueSize;
 	  headerRecv = 0;
@@ -231,7 +231,7 @@ int TCPPacketConn::readData(std::vector<uint8_t>& packet)
 
 void TCPPacketConn::writeData()
 {
-  LOG(DEBUG) << "Writing to Socket";
+  //LOG(DEBUG) << "Writing to Socket";
   std::lock_guard<std::mutex> lockGuard(queueMutex);
   uint8_t buffer[writeQueueSize];
   for(int i = 0; i < writeQueueLen; i++)
@@ -245,7 +245,7 @@ void TCPPacketConn::writeData()
       LOG(ERROR) << "Error writing to socket " << fd << ": " << strerror(errno);
       throw CommunicationException("Error writing to socket");
     }
-  LOG(DEBUG) << "Bytes written: " << status;
+  //LOG(DEBUG) << "Bytes written: " << status;
 
   writeQueueBegin = (writeQueueBegin + status) % writeQueueSize;
   writeQueueLen -= status;
@@ -254,7 +254,7 @@ void TCPPacketConn::writeData()
 
 void TCPPacketConn::insertData(const uint8_t *buffer, int len)
 {
-  LOG(DEBUG) << "Inserting Data";
+  //LOG(DEBUG) << "Inserting Data";
   std::lock_guard<std::mutex> lockGuard(queueMutex);
   if((writeQueueLen + len + PACKETHEADERSIZE) > writeQueueSize)
     {
@@ -271,5 +271,5 @@ void TCPPacketConn::insertData(const uint8_t *buffer, int len)
       writeQueueLen++;
     }
 
-  LOG(DEBUG) << "Write Queue Length is now: " << writeQueueLen << " for fd " << fd;;
+  //LOG(DEBUG) << "Write Queue Length is now: " << writeQueueLen << " for fd " << fd;;
 }

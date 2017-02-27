@@ -20,7 +20,7 @@ TCPConn::TCPConn(int f) : conn(f) {}
 
 TCPConn::TCPConn(const TCPConn& other) : conn(other.conn)
 {
-  LOG(DEBUG) << "TCPConn COpy Constructor";
+  //LOG(DEBUG) << "TCPConn COpy Constructor";
   authenticated = other.authenticated;
   receiver = other.receiver;
 }
@@ -52,11 +52,23 @@ void TCPConn::readData()
 	}
 	else
 	{
-	  if(packet.front() == AUTHPACKETTYPE)
+	  uint8_t packetType = packet.front();
+	  packet.erase(packet.begin());
+	  if(packetType == AUTHPACKETTYPE)
 	    {
-	      LOG(DEBUG) << "Auth packet found";
+	      uint8_t *rsp;
+	      try
+		{
+		  int rspLen = authenticator.authenticate(packet.data(), packet.size(), &rsp);
+		  conn.insertData(rsp, rspLen);
+		  free(rsp);
+		}
+	      catch(AuthenticationFailedException e)
+		{
+		  LOG(ERROR) << "Authentication Failed: " << e.what();
+		}
 	    }
-	  else if((packet.front() == DATAPACKETTYPE) && authenticated)
+	  else if((packetType == DATAPACKETTYPE) && (authenticator.getAuthStatus() == AUTHSTATE_AUTHENTICATED))
 	    {
 	      LOG(DEBUG) << "Data packet found";
 	    }
@@ -69,7 +81,13 @@ void TCPConn::readData()
 
 void TCPConn::sendRequest(const RequestObj& req)
 {
-  LOG(DEBUG) << "Writing Packet";
+  //The only messages allowed in or out when we are unauthenticated are auth packets
+  if(authenticator.getAuthStatus() != AUTHSTATE_AUTHENTICATED)
+    {
+      return;
+    }
+
+  //LOG(DEBUG) << "Writing Packet";
   int len = 4 + req.getData().size();
   uint8_t buffer[len];
   buffer[0] = DATAPACKETTYPE;

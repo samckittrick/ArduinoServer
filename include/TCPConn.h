@@ -25,6 +25,7 @@
 #include "TCPPacketConn.h"
 #include "ServerExceptions.h"
 #include "CPPLogger.h"
+#include "Authenticator.h"
 
 #define AUTHPACKETTYPE 0x01
 #define DATAPACKETTYPE 0x02
@@ -48,6 +49,7 @@ class TCPConn
 		
 	private:
 		RequestReceiver receiver;
+		Authenticator authenticator;
 		bool authenticated;
 		TCPPacketConn conn;
 };  

@@ -11,7 +11,7 @@ AuthenticatorTest: Authenticator.o SharedSecretScheme.o AuthenticatorTest.cpp
 TCPPacketConnTest: TCPPacketConn.o TCPPacketConnTest.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) ../build/* TCPPacketConnTest.cpp -o $@
 
-TCPManagerTest: TCPManager.o TCPManagerTest.cpp
+TCPManagerTest: TCPManager.o Authenticator.o SharedSecretScheme.o TCPManagerTest.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) ../build/* TCPManagerTest.cpp -o $@
 
 DeviceManagerTest: DeviceManager.o DeviceManagerTest.cpp

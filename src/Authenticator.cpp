@@ -41,6 +41,7 @@ void Authenticator::registerAuthenticationScheme(std::string tag, Authentication
 AuthenticationScheme* Authenticator::getAuthenticationScheme(std::string tag)
 {
   std::map<std::string, AuthenticationSchemeFactory*>::iterator it = factoryMap.find(tag);
+  //LOG(DEBUG) << "Requested Scheme length: " << tag.length();
   if(it != factoryMap.end())
     {
       return it->second->getAuthenticationScheme();
@@ -58,7 +59,7 @@ int Authenticator::getAuthStatus()
 
 int Authenticator::authenticate(uint8_t *data, int length, uint8_t **rsp)
 {
-  LOG(DEBUG) << "Received auth packet";
+  //LOG(DEBUG) << "Received auth packet";
   if(authStatus == AUTHSTATE_UNAUTHENTICATED) //If it's unauthenticated, we need to select a scheme
     {
       LOG(DEBUG) << "Currently unauthenticated";

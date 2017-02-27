@@ -43,7 +43,7 @@ class Authenticator
   //Function for authenticating a connection
   //data - authentication data from client
   //rsp - response data from server. Allows for multistep authentication
-  //return - Whether or not the client is authenticated.
+  //return - length of response
   int authenticate(uint8_t *data, int length, uint8_t **rsp);
   
   //Get the auth status
