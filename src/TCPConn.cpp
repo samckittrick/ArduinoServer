@@ -66,6 +66,7 @@ void TCPConn::readData()
 	      catch(AuthenticationFailedException e)
 		{
 		  LOG(ERROR) << "Authentication Failed: " << e.what();
+		  throw ConnectionException("Authentication Failed");
 		}
 	    }
 	  else if((packetType == DATAPACKETTYPE) && (authenticator.getAuthStatus() == AUTHSTATE_AUTHENTICATED))
