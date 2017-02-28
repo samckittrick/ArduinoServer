@@ -56,9 +56,10 @@ class TCPPacketConn
   //Low level packet framing & control
   int getFd() const;
   bool readyToWrite() const;
-  int readData(std::vector<uint8_t>& packet);
+  void readData();
   void writeData();
 
+  int processData(std::vector<uint8_t>& packet);
   void insertData(const uint8_t *buffer, int len);
 
 
@@ -71,10 +72,9 @@ class TCPPacketConn
   uint8_t *readQueue;
   unsigned int readQueueSize;
   unsigned int readQueueBegin;
-  
-  unsigned int currPacketLen; //Length of the current packet being read in
-  unsigned int currRecvLen; //Amount of data already received
-  unsigned int headerRecv; //The header is 4 bytes long, need to handle the case where we only recv part of it
+  unsigned int readQueueLen;
+ 
+  unsigned int headerRecv; //The header is 2 bytes long, need to handle the case where we only recv part of it
   uint32_t headerRaw;
   time_t startTime; //Time this packet read began.
   
@@ -87,6 +87,7 @@ class TCPPacketConn
   static uint8_t* resizeQueue(uint8_t *queue, unsigned int *capacity, unsigned int *cursor, int len, int requestedLen);
   void handlePacket(std::vector<uint8_t>& data);
   void handleTimeout();
+  void handleKeepAlive();
   
   RequestReceiver receiver;
   bool authenticated;

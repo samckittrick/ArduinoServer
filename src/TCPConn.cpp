@@ -44,40 +44,45 @@ void TCPConn::writeData()
 
 void TCPConn::readData()
 {
-	std::vector<uint8_t> packet;
-	int status = conn.readData(packet);
-	if(status == 0) //If we haven't gotten the full packet yet, read will return 0;
+  conn.readData();
+  std::vector<uint8_t> packet;	
+	//Process any packets that have come in
+  while(conn.processData(packet))
+    {
+      uint8_t packetType = packet.front();
+      packet.erase(packet.begin());
+      if(packetType == AUTHPACKETTYPE)
 	{
-		return;
-	}
-	else
-	{
-	  uint8_t packetType = packet.front();
-	  packet.erase(packet.begin());
-	  if(packetType == AUTHPACKETTYPE)
+	  uint8_t *rsp;
+	  try
 	    {
-	      uint8_t *rsp;
-	      try
-		{
-		  int rspLen = authenticator.authenticate(packet.data(), packet.size(), &rsp);
-		  conn.insertData(rsp, rspLen);
-		  free(rsp);
-		}
-	      catch(AuthenticationFailedException e)
-		{
-		  LOG(ERROR) << "Authentication Failed: " << e.what();
-		  throw ConnectionException("Authentication Failed");
-		}
+	      int rspLen = authenticator.authenticate(packet.data(), packet.size(), &rsp);
+	      conn.insertData(rsp, rspLen);
+	      //free(rsp);
 	    }
-	  else if((packetType == DATAPACKETTYPE) && (authenticator.getAuthStatus() == AUTHSTATE_AUTHENTICATED))
+	  catch(AuthenticationFailedException e)
 	    {
-	      LOG(DEBUG) << "Data packet found";
-	    }
-	  else
-	    {
-	      LOG(WARN) << "Invalid or unauthorized packet found";
+	      LOG(ERROR) << "Authentication Failed: " << e.what();
+	      throw ConnectionException("Authentication Failed");
 	    }
 	}
+      else if((packetType == DATAPACKETTYPE) && (authenticator.getAuthStatus() == AUTHSTATE_AUTHENTICATED))
+	{
+	  try
+	    {
+	      RequestObj req = packageDataPacket(packet);
+	    }
+	  catch(CommunicationException e)
+	    {
+	      LOG(ERROR) << "Invalid data packet received";
+	    }
+	}
+      else
+	{
+	  LOG(WARN) << "Invalid or unauthorized packet found";
+	}
+      packet.clear();
+    }
 }
 
 void TCPConn::sendRequest(const RequestObj& req)
@@ -118,4 +123,23 @@ bool TCPConn::isAuthenticated() const
 bool TCPConn::readyToWrite()
 {
   return conn.readyToWrite();
+}
+
+RequestObj TCPConn::packageDataPacket(const std::vector<uint8_t>& data)
+{
+  //If we don't at least get the device and command
+  if(data.size() < 3)
+    {
+      LOG(ERROR) << "Invalid Packet Size";
+      throw CommunicationException("Invalid Packet Size");
+    }
+
+  uint8_t dev = data.at(0);
+  uint16_t cmd = (data.at(1) << 8) | data.at(2);
+
+  std::vector<uint8_t> d(data.begin() + 3, data.end());
+
+  RequestObj req(cmd, dev, getFd(), d);
+  LOG(DEBUG) << "Request object packaged: " << req.toString();
+  return req;
 }

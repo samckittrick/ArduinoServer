@@ -27,13 +27,13 @@ TCPPacketConn::TCPPacketConn(int f) : fd(f)
   readQueue = new uint8_t [DEFAULTQUEUESIZE];
   readQueueSize = DEFAULTQUEUESIZE;
   readQueueBegin = 0;
-  
+  readQueueLen = 0;
+
   writeQueue = new uint8_t [DEFAULTQUEUESIZE];
   writeQueueSize = DEFAULTQUEUESIZE;
   writeQueueBegin = 0;
   writeQueueLen = 0;
 
-  currRecvLen = 0;
   headerRecv = 0;
   headerRaw = 0;
 }
@@ -47,13 +47,12 @@ TCPPacketConn::TCPPacketConn(const TCPPacketConn& in)
   readQueue = new uint8_t [in.readQueueSize];
   readQueueSize = in.readQueueSize;
   readQueueBegin = in.readQueueBegin;
+  readQueueLen = in.readQueueLen;
   for(unsigned int i = 0; i < readQueueSize; i++)
     {
       readQueue[i] = in.readQueue[i];
     }
   
-  currPacketLen = in.currPacketLen;
-  currRecvLen = in.currRecvLen;
   headerRecv = in.headerRecv;
   headerRaw = in.headerRaw;
   startTime = in.startTime;
@@ -88,8 +87,7 @@ TCPPacketConn& TCPPacketConn::operator=(TCPPacketConn&& other)
   other.readQueue = NULL;
   readQueueSize = other.readQueueSize;
   readQueueBegin = other.readQueueBegin;
-  currPacketLen = other.currPacketLen;
-  currRecvLen = other.currRecvLen;
+  readQueueLen = other.readQueueLen;
   headerRecv = other.headerRecv;
   headerRaw = other.headerRaw;
   startTime = other.startTime;
@@ -128,17 +126,31 @@ uint8_t* TCPPacketConn::resizeQueue(uint8_t *queue, unsigned int *capacity, unsi
 
 void TCPPacketConn::handlePacket(std::vector<uint8_t>& data)
 {
-	for(int i = 0; i < currRecvLen; i++)
+	for(int i = 0; i < headerRaw; i++)
 	{
 		data.push_back(readQueue[(readQueueBegin + i) % readQueueSize]);
 		//printf("%02X", readQueue[(readQueueBegin + i) % readQueueSize]);
 	}
+	//Remove the packet from the queue
+	readQueueBegin = (readQueueBegin + headerRaw) % readQueueSize;
+	readQueueLen -= headerRaw;
+	headerRecv = 0;
 }
 
 void TCPPacketConn::handleTimeout()
 {
   //Might want to send some keep alive packets to resync
   LOG(WARN) << "Packet timed out";
+  //Empty the queue
+  headerRecv = 0;
+  readQueueBegin = (readQueueBegin + readQueueLen) % readQueueSize;
+  readQueueLen = 0;
+}
+
+void TCPPacketConn::handleKeepAlive()
+{
+  LOG(WARN) << "Keep alive request received.";
+  headerRecv = 0;
 }
 
 bool TCPPacketConn::readyToWrite() const
@@ -148,8 +160,9 @@ bool TCPPacketConn::readyToWrite() const
   return writeQueueLen > 0;
 }
 
-int TCPPacketConn::readData(std::vector<uint8_t>& packet)
+void TCPPacketConn::readData()
 {
+  //LOG(DEBUG) << "Reading Data";
   std::lock_guard<std::mutex> lockGuard(queueMutex);
   uint8_t buffer[DEFAULTQUEUESIZE];
   int status = recv(fd, buffer, DEFAULTQUEUESIZE, 0);
@@ -166,66 +179,60 @@ int TCPPacketConn::readData(std::vector<uint8_t>& packet)
     }
 
 
-  if((currRecvLen + status) > readQueueSize)
+  if((readQueueLen + status) > readQueueSize)
     {
-      readQueue = resizeQueue(readQueue, &readQueueSize, &readQueueBegin, currRecvLen, (currRecvLen + status));
+      readQueue = resizeQueue(readQueue, &readQueueSize, &readQueueBegin, readQueueLen, (readQueueLen + status));
     }
 
   for(int i = 0; i < status; i++)
     {
-      if(headerRecv < PACKETHEADERSIZE)
-	{
-	  startTime = time(NULL);
-	    
-	  if(headerRecv == 0)
-	    {
-	      headerRaw = buffer[i] << 8;
-	      headerRecv++;
-	    }
-	  else
-	    {
-	      headerRaw |= buffer[i];
-	      //LOG(DEBUG) << "Raw Header: " << headerRaw;
-	      currPacketLen = headerRaw;
-	      //LOG(DEBUG) << "CurrPacketLen: " << currPacketLen;
-	      headerRecv++;
-	    }
+      readQueue[(readQueueBegin + i) % readQueueSize] = buffer[i];
+      readQueueLen++;
+    }
+}
 
-	  //LOG(DEBUG) << "Receiving header";
+int TCPPacketConn::processData(std::vector<uint8_t>& packet)
+{
+  //LOG(DEBUG) << "Processing Data";
+  //Process the header if we need to
+  if(headerRecv != PACKETHEADERSIZE)
+    {
+      if(readQueueLen >= PACKETHEADERSIZE)
+	{
+	  headerRaw = readQueue[readQueueBegin] << 8;
+	  headerRaw |= readQueue[(readQueueBegin + 1) % readQueueSize];
+	  readQueueBegin = (readQueueBegin + PACKETHEADERSIZE) % readQueueSize;
+	  readQueueLen -= PACKETHEADERSIZE;
+	  headerRecv = PACKETHEADERSIZE;
+	  startTime = time(NULL);
 	}
       else
 	{
-	  readQueue[(readQueueBegin + currRecvLen) % readQueueSize] = buffer[i];
-	  currRecvLen++;
-	}
-
-      //LOG(DEBUG) << "CurrRecvLen: " << currRecvLen;
-      if((currRecvLen == currPacketLen) & (currRecvLen != 0)) //If we got the whole packet
-	{
-	  //LOG(DEBUG) << "Received packet";
-	  handlePacket(packet);
-	  readQueueBegin =(readQueueBegin + currPacketLen) % readQueueSize;
-	  headerRecv = 0;
-	  headerRaw = 0;
-	  currRecvLen = 0;
-	  currPacketLen = 0;
-	  //return true that a packet has been received
-	  return 1;
-	}
-
-      //LOG(DEBUG) << "Diff time: " << difftime(time(NULL), startTime);
-      if(difftime(time(NULL), startTime) >= TIMEOUT) //If the timeout kicks in, the connection will have to resync
-	{
-	  handleTimeout();
-	  readQueueBegin = (readQueueBegin + currRecvLen) % readQueueSize;
-	  headerRecv = 0;
-	  headerRaw = 0;
-	  currRecvLen = 0;
-	  currPacketLen = 0;
+	  return 0;
 	}
     }
-	//If we get here, no packet has been received yet
-	return 0;
+  
+  if(headerRaw == 0)
+    {
+      handleKeepAlive();
+      return 0;
+    }
+  
+  //If the read queue has enough data to make up the current packet
+  if(readQueueLen >= headerRaw)
+    {
+      //LOG(DEBUG) << "Handling Packet. Header size: " << headerRaw << " readQueueLen: " << readQueueLen;
+      handlePacket(packet);
+      return 1;
+    }
+
+  if(difftime(time(NULL), startTime) >= TIMEOUT)
+    {
+      handleTimeout();
+      return 0;
+    }
+
+  return 0;
 }
 
 

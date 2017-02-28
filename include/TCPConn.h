@@ -52,6 +52,8 @@ class TCPConn
 		Authenticator authenticator;
 		bool authenticated;
 		TCPPacketConn conn;
+		
+		RequestObj packageDataPacket(const std::vector<uint8_t>& data);
 };  
 
 #endif
