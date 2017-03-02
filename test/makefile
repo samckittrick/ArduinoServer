@@ -5,6 +5,9 @@ INCLUDE=-I../include/ -I../SerialPacketConn/include/ -I../CPPLogger/
 
 all: DeviceManagerTest BasicSerialDeviceTest TCPManagerTest TCPPacketConnTest
 
+CountDownLatchTest: CountDownLatch.o CountDownLatchTest.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) ../build/* CountDownLatchTest.cpp -o $@
+
 AuthenticatorTest: Authenticator.o SharedSecretScheme.o AuthenticatorTest.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) ../build/* AuthenticatorTest.cpp -o $@
 
@@ -44,10 +47,15 @@ Authenticator.o:
 SharedSecretScheme.o:
 	$(MAKE) -C .. build/SharedSecretScheme.o
 
+.PHONY: CountDownLatch.o
+CountDownLatch.o:
+	$(MAKE) -C .. build/CountDownLatch.o
+
 clean:
 	rm -f BasicSerialDeviceTest
 	rm -f DeviceManagerTest
 	rm -f TCPManagerTest
 	rm -f TCPPacketConnTest
 	rm -f AuthenticatorTest
+	rm -f CountDownLatchTest
 	$(MAKE) -C .. clean

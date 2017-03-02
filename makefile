@@ -2,8 +2,16 @@ CC=g++
 CFLAGS=-pthread -lcrypto -std=c++11 $(DEBUGSYM) 
 INCLUDE=-Iinclude/ -ISerialPacketConn/include/ -ICPPLogger/
 BUILDDIR=build
+BINDIR=bin
 
-all:
+all: $(BINDIR)/ArduinoServer
+
+$(BINDIR)/ArduinoServer: CPPLogger/CPPLogger.h
+	$(CC) $(CFLAGS) $(INCLUDE) src/ArduinoServer.cpp -o $@
+	chmod 755 $@
+
+$(BUILDDIR)/CountDownLatch.o: include/CountDownLatch.h src/CountDownLatch.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) -c src/CountDownLatch.cpp -o $@
 
 $(BUILDDIR)/Authenticator.o: include/Authenticator.h include/AuthenticationScheme.h src/Authenticator.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/Authenticator.cpp -o $@
@@ -32,4 +40,5 @@ LinuxSerialPacketConn.a:
 
 clean: 
 	rm -f $(BUILDDIR)/*
+	rm -f $(BINDIR)/*
 	$(MAKE) -C SerialPacketConn clean
