@@ -57,8 +57,12 @@ void TCPConn::readData()
 	  try
 	    {
 	      int rspLen = authenticator.authenticate(packet.data(), packet.size(), &rsp);
-	      conn.insertData(rsp, rspLen);
-	      //free(rsp);
+	      uint8_t rspFinal[rspLen + 1];
+	      rspFinal[0] = AUTHPACKETTYPE;
+	      for(int i = 0 ; i < rspLen; i++)
+		rspFinal[i+1] = rsp[i];
+	      conn.insertData(rspFinal, rspLen + 1);
+	      free(rsp);
 	    }
 	  catch(AuthenticationFailedException e)
 	    {

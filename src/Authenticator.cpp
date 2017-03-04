@@ -81,13 +81,15 @@ int Authenticator::authenticate(uint8_t *data, int length, uint8_t **rsp)
 	      (*rsp)[i + 1] = requestedScheme.at(i);
 	    }
 	  authStatus = AUTHSTATE_SCHEMESELECTED;
+	  return requestedScheme.size() + 1;
 	}
       catch(AuthenticationSchemeNotFoundException e)
 	{
 	  LOG(ERROR) << "Authentication Scheme not found";
-	  *rsp = new uint8_t[1];
+	  *rsp = new uint8_t[2];
 	  (*rsp)[0] = TYPE_SERVER_HELLO;
-	  return 1;
+	  (*rsp)[1] = 0x00;
+	  return 2;
 	}
     }
   else if(authStatus == AUTHSTATE_SCHEMESELECTED) //If we have a scheme selected pass the data to the scheme
