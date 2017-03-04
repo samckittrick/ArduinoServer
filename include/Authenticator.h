@@ -33,7 +33,8 @@
 #define TYPE_CLIENT_HELLO 1
 #define TYPE_SERVER_HELLO 2
 #define TYPE_AUTH_REQ 3
-#define TYPE_AUTH_RSP 4
+#define TYPE_AUTH_RSP_SUCCESS 4
+#define TYPE_AUTH_RSP_MOREINFO 5
 
 class Authenticator
 {

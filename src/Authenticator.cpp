@@ -110,7 +110,7 @@ int Authenticator::authenticate(uint8_t *data, int length, uint8_t **rsp)
 
       //Package the response data and return it
       *rsp = new uint8_t[rspLen + 1];
-      (*rsp)[0] = TYPE_AUTH_RSP;
+      (*rsp)[0] = authScheme->getAuthStatus() ? TYPE_AUTH_RSP_SUCCESS : TYPE_AUTH_RSP_MOREINFO;
       for(int i = 0; i < rspLen; i++)
 	{
 	  (*rsp)[i+1] = rspData[i];
