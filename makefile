@@ -6,14 +6,14 @@ BINDIR=bin
 
 all: $(BINDIR)/ArduinoServer
 
-$(BINDIR)/ArduinoServer: CPPLogger/CPPLogger.h
-	$(CC) $(CFLAGS) $(INCLUDE) src/ArduinoServer.cpp -o $@
+$(BINDIR)/ArduinoServer: CPPLogger/CPPLogger.h $(BUILDDIR)/TCPManager.o $(BUILDDIR)/DeviceManager.o 
+	$(CC) $(CFLAGS) $(INCLUDE) build/* SerialPacketConn/build/* src/ArduinoServer.cpp -o $@
 	chmod 755 $@
 
 $(BUILDDIR)/CountDownLatch.o: include/CountDownLatch.h src/CountDownLatch.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/CountDownLatch.cpp -o $@
 
-$(BUILDDIR)/Authenticator.o: include/Authenticator.h include/AuthenticationScheme.h src/Authenticator.cpp
+$(BUILDDIR)/Authenticator.o: include/Authenticator.h include/AuthenticationScheme.h src/Authenticator.cpp $(BUILDDIR)/SharedSecretScheme.o
 	$(CC) $(CFLAGS) $(INCLUDE) -c src/Authenticator.cpp -o $@
 
 $(BUILDDIR)/SharedSecretScheme.o: include/AuthenticationScheme.h include/SharedSecretScheme.h src/SharedSecretScheme.cpp

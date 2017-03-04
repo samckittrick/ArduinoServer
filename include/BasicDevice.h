@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <functional>
 #include "RequestObj.h"
 
 class BasicDevice {
@@ -44,7 +45,7 @@ class BasicDevice {
   virtual const std::string getDeviceName() const = 0;
 
   virtual void processRequest(const RequestObj& req) = 0;
-  virtual void setRequestReceiver(RequestReceiver r) = 0;
+  virtual void setRequestReceiver(std::function<RequestReceiver> r) = 0;
 
   virtual void readThread() = 0;
   virtual void signalEnd() = 0;

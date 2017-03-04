@@ -21,6 +21,7 @@
 #define TCPCONN_H
 
 #include <vector>
+#include <functional>
 #include "RequestObj.h"
 #include "TCPPacketConn.h"
 #include "ServerExceptions.h"
@@ -44,11 +45,11 @@ class TCPConn
 
 		  //Higher level request object translation
 		void sendRequest(const RequestObj& req);
-		void setRequestReceiver(RequestReceiver r);
+		void setRequestReceiver(std::function<RequestReceiver> r);
 		bool isAuthenticated() const;
 		
 	private:
-		RequestReceiver receiver;
+		std::function<RequestReceiver> receiver;
 		Authenticator authenticator;
 		bool authenticated;
 		TCPPacketConn conn;

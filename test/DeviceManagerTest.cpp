@@ -16,7 +16,9 @@ int main()
   CPPLogger::getLog().setLogLevel(DEBUG);
   DeviceManager mgr;
   mgr.setRequestQueueListener(&receiver);
-  mgr.addDevice(DEV_TYPE_SERIAL, "/dev/ttyACM0");
+  std::vector<std::string> devInfo;
+  devInfo.push_back("/dev/ttyACM0");
+  mgr.addDevice(DEV_TYPE_SERIAL, devInfo);
   std::vector<BasicDevice*> list = mgr.getDeviceList();
   for(std::vector<BasicDevice*>::iterator it = list.begin(); it != list.end(); it++)
     {

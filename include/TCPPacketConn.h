@@ -89,7 +89,7 @@ class TCPPacketConn
   void handleTimeout();
   void handleKeepAlive();
   
-  RequestReceiver receiver;
+  //RequestReceiver receiver;
   bool authenticated;
 
   std::mutex queueMutex;

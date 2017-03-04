@@ -30,6 +30,7 @@
 #include <string.h>
 #include <atomic>
 #include <unistd.h>
+#include <functional>
 #include "RequestObj.h"
 #include "CPPLogger.h"
 #include "ServerExceptions.h"
@@ -49,7 +50,7 @@ class TCPManager
   void socketListen();
 
   //Register a request callback
-  void setRequestQueueListener(RequestReceiver l);
+  void setRequestQueueListener(std::function<RequestReceiver> l);
   void addRequest(const RequestObj& req);
 
   void setExitCondition(bool cond);
@@ -64,7 +65,7 @@ class TCPManager
   TCPConn& getConnById(int id);
   
   //Request Queue callback
-  RequestReceiver listener;
+  std::function<RequestReceiver> listener;
 
   std::thread readThread;
 

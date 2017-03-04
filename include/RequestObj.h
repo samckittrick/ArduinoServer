@@ -56,7 +56,7 @@ class RequestObj
 };
 
 //RequestReceiver function definition
-typedef void (*RequestReceiver)(const RequestObj& req);
+typedef void RequestReceiver(const RequestObj& req);
 
 
 #endif 

@@ -28,6 +28,8 @@
 #include <atomic>
 #include <thread>
 #include <unistd.h>
+#include <functional>
+#include <vector>
 #include "BasicDevice.h"
 #include "ServerExceptions.h"
 #include "ProtocolConsts.h"
@@ -39,7 +41,7 @@
 class BasicSerialDevice : public BasicDevice {
 
  public:
-  BasicSerialDevice(std::string devPath);
+  BasicSerialDevice(std::vector<std::string> devInfo);
   ~BasicSerialDevice();
 
   const uint8_t getDeviceId() const;
@@ -52,7 +54,7 @@ class BasicSerialDevice : public BasicDevice {
   void commandReceived(struct command message);
 
   void processRequest(const RequestObj& req);
-  void setRequestReceiver(RequestReceiver r);
+  void setRequestReceiver(std::function<RequestReceiver> r);
 
   static struct command reqObj2Command(const RequestObj& req);
   static RequestObj command2ReqObj(struct command m);
@@ -65,7 +67,7 @@ class BasicSerialDevice : public BasicDevice {
   DevInfo devInfo;
   std::atomic<bool> endCond;
   std::thread readThreadObj;
-  RequestReceiver receiver; 
+  std::function<RequestReceiver> receiver; 
 
 };
 

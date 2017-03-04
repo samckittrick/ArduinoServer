@@ -71,6 +71,10 @@ void TCPConn::readData()
 	  try
 	    {
 	      RequestObj req = packageDataPacket(packet);
+	      if(receiver != NULL)
+		{
+		  receiver(req);
+		}
 	    }
 	  catch(CommunicationException e)
 	    {
@@ -110,7 +114,7 @@ void TCPConn::sendRequest(const RequestObj& req)
   conn.insertData(buffer, len);
 }
 
-void TCPConn::setRequestReceiver(RequestReceiver r)
+void TCPConn::setRequestReceiver(std::function<RequestReceiver> r)
 {
   receiver = r;
 }

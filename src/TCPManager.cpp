@@ -204,7 +204,7 @@ void TCPManager::socketListen()
 }
   
 
-void TCPManager::setRequestQueueListener(RequestReceiver l)
+void TCPManager::setRequestQueueListener(std::function<RequestReceiver> l)
 {
   listener = l;
 
@@ -244,6 +244,7 @@ TCPConn& TCPManager::getConnById(int id)
 
 void TCPManager::addRequest(const RequestObj& req)
 {
+  LOG(DEBUG) << "Adding Device to TCPManager";
   try
     {
       TCPConn& conn = getConnById(req.getDest());

@@ -30,9 +30,9 @@ DeviceManager::DeviceManager()
 }
 
 //Add a device to the list. If there is an error connecting, return -1.
-int DeviceManager::addDevice(int devType, std::string devAddr)
+int DeviceManager::addDevice(int devType, std::vector<std::string> devInfo)
 {
-  LOG(DEBUG) << "Adding Device: " << devAddr;
+  LOG(DEBUG) << "Adding Device: " << devInfo[0];
   std::lock_guard<std::mutex> lockGuard(devListMutex);
   try
     {
@@ -40,10 +40,10 @@ int DeviceManager::addDevice(int devType, std::string devAddr)
       switch(devType)
 	{
 	case DEV_TYPE_SERIAL:
-	  dev = new BasicSerialDevice(devAddr);
+	  dev = new BasicSerialDevice(devInfo);
 	  devList.push_back(dev);
 	  dev->setRequestReceiver(listener);
-	  LOG(INFO) << "Added Serial Device: " << devAddr;
+	  LOG(INFO) << "Added Serial Device: " << devInfo[0];
 	  break;
 	default:
 	  LOG(WARN) << "Unknown Device Type";
@@ -95,7 +95,7 @@ BasicDevice* DeviceManager::getDeviceByAddress(uint8_t addr)
 //Add a request to the request queue
 void DeviceManager::addRequest(const RequestObj& req)
 {
-  LOG(DEBUG) << "Adding Request";
+  LOG(DEBUG) << "Adding Request to Device Manager";
   LOG(DEBUG) << req.toString();
   std::lock_guard<std::mutex> lockGuard(reqListMutex);
   reqQueue.push(req);
@@ -201,7 +201,7 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
   return data;
 }
       
-void DeviceManager::setRequestQueueListener(RequestReceiver l)
+void DeviceManager::setRequestQueueListener(std::function<RequestReceiver> l)
 {
   //Set the local listener
   listener = l;

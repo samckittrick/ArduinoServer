@@ -42,7 +42,7 @@ TCPPacketConn::TCPPacketConn(const TCPPacketConn& in)
 {
   //LOG(DEBUG) << "Packet Conn Copy Constructor";
   fd = in.fd;
-  receiver = in.receiver;
+  //receiver = in.receiver;
 
   readQueue = new uint8_t [in.readQueueSize];
   readQueueSize = in.readQueueSize;
@@ -80,7 +80,7 @@ TCPPacketConn& TCPPacketConn::operator=(TCPPacketConn&& other)
   LOG(DEBUG) << "Move Assignment operator";
   fd = other.fd;
   other.fd = -1;
-  receiver = other.receiver;
+  //receiver = other.receiver;
   
   delete[] readQueue;
   readQueue = other.readQueue;

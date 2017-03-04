@@ -78,4 +78,14 @@ struct AuthenticationSchemeNotFoundException : public std::exception {
   }
 };
 
+struct ConfigurationException : public std::exception {
+  std::string message;
+  ConfigurationException(std::string m){
+    message = m;
+  }
+
+  const char * what() {
+    return message.c_str();
+  }
+};
 #endif

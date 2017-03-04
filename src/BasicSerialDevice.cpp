@@ -22,12 +22,12 @@
 
 #include "BasicSerialDevice.h"
 
-BasicSerialDevice::BasicSerialDevice(std::string devPath)
+BasicSerialDevice::BasicSerialDevice(std::vector<std::string> devParams)
 {
   receiver = NULL;
   
   LOG(INFO) << "Initializing Serial Device.";
-  conn.setDeviceName(devPath);
+  conn.setDeviceName(devParams[0]);
   conn.setBaudRate(9600);
   //conn.setPacketReceiver(&packetReceiver);
   
@@ -122,7 +122,7 @@ void BasicSerialDevice::sendCommand(struct BasicDevice::command message)
   
 int BasicSerialDevice::recvCommand(struct command *rsp)
 {
-  LOG(DEBUG) << "Listening for response";
+  //LOG(DEBUG) << "Listening for response";
   //Wait for a response, may need a timeout here.
   uint8_t responseArr[MAXDATALEN];
   int recvLen = conn.recvData(responseArr, MAXDATALEN, 2);
@@ -206,7 +206,7 @@ void BasicSerialDevice::processRequest(const RequestObj& req)
   sendCommand(reqObj2Command(req));
 }
 
-void BasicSerialDevice::setRequestReceiver(RequestReceiver r)
+void BasicSerialDevice::setRequestReceiver(std::function<RequestReceiver> r)
 {
   receiver = r;
 }

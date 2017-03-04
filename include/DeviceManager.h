@@ -28,6 +28,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <functional>
 #include "BasicDevice.h"
 #include "BasicSerialDevice.h"
 #include "ProtocolConsts.h"
@@ -39,7 +40,7 @@ class DeviceManager
     public:
         DeviceManager();
         //Device Enumeration and management functions
-        int addDevice(int devType, std::string devAddr);
+        int addDevice(int devType, std::vector<std::string> devInfo);
 	const std::vector<BasicDevice*> getDeviceList() const;
 	BasicDevice* getDeviceById(uint8_t id);
 	//Device addressing is based on a single byte address. Address 0 is devicemanager itself. 
@@ -56,7 +57,7 @@ class DeviceManager
 	void endThreads();
 
 	//Register a request callback
-	void setRequestQueueListener(RequestReceiver l);
+	void setRequestQueueListener(std::function<RequestReceiver> l);
     
     private:
         //Device list
@@ -65,7 +66,7 @@ class DeviceManager
 	std::queue<RequestObj> reqQueue;
 	
 	//RequestQueueListener
-	RequestReceiver listener;
+	std::function<RequestReceiver> listener;
 	
 	//Thread Saftey and control
 	std::mutex devListMutex;
