@@ -238,7 +238,7 @@ int TCPPacketConn::processData(std::vector<uint8_t>& packet)
 
 void TCPPacketConn::writeData()
 {
-  //LOG(DEBUG) << "Writing to Socket";
+  LOG(DEBUG) << "Writing to Socket";
   std::lock_guard<std::mutex> lockGuard(queueMutex);
   uint8_t buffer[writeQueueSize];
   for(int i = 0; i < writeQueueLen; i++)

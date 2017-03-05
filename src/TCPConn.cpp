@@ -114,7 +114,7 @@ void TCPConn::sendRequest(const RequestObj& req)
     {
       buffer[i + 4] = data[i];
     }
-
+  LOG(DEBUG) << "Inserting data into write Queue";
   conn.insertData(buffer, len);
 }
 

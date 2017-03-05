@@ -135,7 +135,7 @@ void TCPManager::socketListen()
 	}
 
       //set timeout
-      tv.tv_sec = 5;
+      tv.tv_usec = 50000;
 
       //LOG(DEBUG) << "FDs set, listening...";
 

@@ -21,6 +21,8 @@
 #include <iostream>
 #include <functional>
 #include <csignal>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "CPPLogger.h"
 #include "TCPManager.h"
 #include "DeviceManager.h"
@@ -102,6 +104,7 @@ void printHelp()
   std::cout << "\t -l Path to log file\n";
 }
 
+
 int main(int argc, char **argv)
 {  
   
@@ -156,7 +159,7 @@ int main(int argc, char **argv)
   std::string tmpLogPath = logFilePath;
   parseConfigurationFile(configFilePath);
 
-  if(logFilePath.compare(tmpLogPath) != 0)
+  if((logFilePath.compare(tmpLogPath) != 0) && !foreground)
     {
       CPPLogger::getLog().setLogModeFile(logFilePath);
     }
@@ -165,6 +168,41 @@ int main(int argc, char **argv)
     {
       //Demonize!!
       LOG(INFO) << "Preparing to Fork";
+      pid_t pid, sid;
+      pid = fork();
+      
+      if(pid < 0)
+	{
+	  LOG(FATAL) << "Failed to fork. Exiting.";
+	  return 1;
+	}
+
+      if(pid > 0)
+	{
+	  LOG(INFO) << "Fork Successful. Exiting parent process.";
+	  return 0;
+	}
+      
+      //change the file mask
+      umask(0);
+      sid = setsid();
+      if(sid < 0)
+	{
+	  LOG(FATAL) << "Failed to get sid";
+	  return 1;
+	}
+
+      if((chdir("/")) < 0)
+	{
+	  LOG(FATAL) << "Failed to change directory";
+	}
+
+      //Close standard file descriptors
+      close(STDIN_FILENO);
+      close(STDOUT_FILENO);
+      close(STDERR_FILENO);
+
+      LOG(INFO) << "Successfully daemonized. New PID: " << pid;
     }
 
   //Register Authenticators based on config
@@ -198,6 +236,7 @@ int main(int argc, char **argv)
   
   latch->await();
   LOG(INFO) << "Exiting...Goodbye";
+  return 0;
 }
 	  
   
