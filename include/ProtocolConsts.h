@@ -29,7 +29,7 @@ const uint16_t DEV_GET_INFO = 0x0001;
 const uint16_t DEV_GET_INFO_RSP = 0x0100;
 const uint16_t DEV_SET_INFO = 0x0002;
 const uint16_t DEV_SET_INFO_RSP = 0x0200;
-        
+const uint16_t DEV_UNKNOWN_CMD = 0x0300;        
     //RGB Lamp Constants
 const uint16_t LAMP_OFF = 0x0010;
 const uint16_t LAMP_OFF_RSP = 0x1000;
