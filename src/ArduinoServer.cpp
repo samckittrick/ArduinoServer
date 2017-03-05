@@ -20,6 +20,7 @@
 #include <string>
 #include <iostream>
 #include <functional>
+#include <csignal>
 #include "CPPLogger.h"
 #include "TCPManager.h"
 #include "DeviceManager.h"
@@ -27,16 +28,37 @@
 #include "Authenticator.h"
 #include "SharedSecretScheme.h"
 #include "ProtocolConsts.h"
+#include "CountDownLatch.h"
 
 int debugLevel = INFO;
 bool foreground;
 std::string configFilePath = "";
 std::string logFilePath = "/tmp/ArduinoServer.log";
 int tcpPort = 50001;
+CountDownLatch *latch;
 
 //Components
 TCPManager *tcpManager;
 DeviceManager *deviceManager;
+
+void signalHandler(int signum)
+{
+  std::string sigString;
+  switch(signum)
+    {
+    case SIGTERM:
+      sigString = "SIGTERM";
+      break;
+    case SIGINT:
+      sigString = "SIGINT";
+      break;
+    default:
+      sigString = "UNKNOWN";
+      break;
+    }
+  LOG(INFO) << "Received Signal: " << sigString;
+  latch->countDown(2);
+}
 
 void registerAuthenticators()
 {
@@ -149,6 +171,10 @@ int main(int argc, char **argv)
   registerAuthenticators();
 
   //register signal handler here
+  latch = new CountDownLatch(2);
+  signal(SIGTERM, signalHandler);
+  signal(SIGINT, signalHandler);
+
   LOG(INFO) << "Starting TCPManager...";
   tcpManager = new TCPManager(tcpPort);
   try
@@ -170,8 +196,8 @@ int main(int argc, char **argv)
   //configure the devices to be managed
   configureDevices(deviceManager);
   
-  std::string line;
-  getline(std::cin, line);
+  latch->await();
+  LOG(INFO) << "Exiting...Goodbye";
 }
 	  
   

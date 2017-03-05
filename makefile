@@ -6,7 +6,7 @@ BINDIR=bin
 
 all: $(BINDIR)/ArduinoServer
 
-$(BINDIR)/ArduinoServer: CPPLogger/CPPLogger.h $(BUILDDIR)/TCPManager.o $(BUILDDIR)/DeviceManager.o 
+$(BINDIR)/ArduinoServer: CPPLogger/CPPLogger.h $(BUILDDIR)/TCPManager.o $(BUILDDIR)/DeviceManager.o $(BUILDDIR)/CountDownLatch.o 
 	$(CC) $(CFLAGS) $(INCLUDE) build/* SerialPacketConn/build/* src/ArduinoServer.cpp -o $@
 	chmod 755 $@
 
