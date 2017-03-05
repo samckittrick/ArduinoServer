@@ -59,7 +59,17 @@ void signalHandler(int signum)
       break;
     }
   LOG(INFO) << "Received Signal: " << sigString;
-  latch->countDown(2);
+  if(deviceManager != NULL)
+    {
+      deviceManager->endThreads();
+    }
+  latch->countDown();
+  
+  if(tcpManager != NULL)
+    {
+      tcpManager->setExitCondition(true);
+    }
+  latch->countDown();
 }
 
 void registerAuthenticators()

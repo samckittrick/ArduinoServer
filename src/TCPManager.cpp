@@ -220,6 +220,7 @@ void TCPManager::setRequestQueueListener(std::function<RequestReceiver> l)
 
 void TCPManager::setExitCondition(bool cond)
 {
+  LOG(DEBUG) << "Exiting tcp thread";
   exitCondition = cond;
   readThread.join();
   for(std::vector<TCPConn>::iterator it = connList.begin(); it != connList.end(); it++)

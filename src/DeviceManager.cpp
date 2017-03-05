@@ -125,10 +125,12 @@ void DeviceManager::processQueue()
 	{
 	  if(req.getCommand() == DEV_GET_INFO)
 	    {
+	      LOG(DEBUG) << "Marshalling Device List";
 	      std::vector<uint8_t> data = marshallDeviceList(getDeviceList());
 	      RequestObj rsp(DEV_GET_INFO_RSP, req.getSrc(), 0, data);
 	      if(listener != NULL)
 		{
+		  LOG(DEBUG) << "Returning Device List";
 		  listener(rsp);
 		}
 	    }
@@ -174,6 +176,7 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
   int devEntrySize = 131;
   int nameStringLen = 128;
   std::vector<uint8_t> data;
+
   //First byte is the number of objects
   data.push_back(list.size());
   
@@ -181,20 +184,13 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
     {
       BasicDevice *dev = list.at(i);
       //Add the address of the device
-      data.push_back(i & 0xFF);
+      data.push_back(2 + dev->getDeviceName().size());
       data.push_back(dev->getDeviceType());
       data.push_back(dev->getDeviceId());
       std::string devname = dev->getDeviceName();
-      for(int j = 0; j < nameStringLen; j++)
+      for(int j = 0; j < devname.size(); j++)
 	{
-	  if(j < devname.size())
-	    {
-	      data.push_back(devname.at(j));
-	    }
-	  else
-	    {
-	      data.push_back(0x00);
-	    }
+	  data.push_back(devname.at(j));
 	}
     }
 
