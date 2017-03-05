@@ -105,14 +105,14 @@ void TCPConn::sendRequest(const RequestObj& req)
   int len = 4 + req.getData().size();
   uint8_t buffer[len];
   buffer[0] = DATAPACKETTYPE;
-  buffer[1] = req.getDest();
+  buffer[1] = req.getSrc();
   buffer[2] = req.getCommand() >> 8;
   buffer[3] = req.getCommand() & 0xFF;
  
   std::vector<uint8_t> data = req.getData();
   for(int i = 0; i < data.size(); i++)
     {
-      buffer[i + 3] = data[i];
+      buffer[i + 4] = data[i];
     }
 
   conn.insertData(buffer, len);

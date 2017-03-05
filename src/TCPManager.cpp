@@ -244,7 +244,8 @@ TCPConn& TCPManager::getConnById(int id)
 
 void TCPManager::addRequest(const RequestObj& req)
 {
-  LOG(DEBUG) << "Adding Device to TCPManager";
+  LOG(DEBUG) << "Adding Request to TCPManager";
+  LOG(DEBUG) << "Request Obj: " << req.toString();
   try
     {
       TCPConn& conn = getConnById(req.getDest());
