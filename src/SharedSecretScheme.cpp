@@ -52,7 +52,7 @@ int SharedSecretScheme::authenticate(uint8_t *data, int dataLen, uint8_t **rsp)
   id |= data[idOffset+2] << 8;
   id |= data[idOffset+3];
 
-  //LOG(DEBUG) << "ID is: " << id;
+  LOG(DEBUG) << "ID is: " << id;
   
 
   //Parse the time
@@ -69,13 +69,25 @@ int SharedSecretScheme::authenticate(uint8_t *data, int dataLen, uint8_t **rsp)
   strftime(buffer, 128, TIMEFORMAT, &recvTime);
   LOG(DEBUG) << "Received Time is: " << buffer;
 
+  //Parse the received time
+  //We need to temporarily set the timezone env variable to utc before mktime will parse utc
+  char* tz;
+  tz = getenv("TZ");
+  setenv("TZ", "", 1);
+  tzset();
   time_t recvTimeUTC = mktime(&recvTime);
+  if(tz)
+    setenv("TZ", tz, 1);
+  else
+    unsetenv("TZ");
+  tzset();
+  //LOG(DEBUG) << "Received Time as PArsed:" << asctime(gmtime(&recvTimeUTC));
   
   //Calculate current time in UTC
   time_t currTimeLocal;
   time(&currTimeLocal);
-  time_t currTimeUTC = mktime(gmtime(&currTimeLocal));
-  LOG(DEBUG) << "Current UTC: " << ctime(&currTimeUTC);
+  time_t currTimeUTC = currTimeLocal;
+  LOG(DEBUG) << "Current UTC: " << asctime(gmtime(&currTimeUTC));
 
   //Compare time
   double diff = difftime(currTimeUTC, recvTimeUTC);
@@ -103,12 +115,20 @@ int SharedSecretScheme::authenticate(uint8_t *data, int dataLen, uint8_t **rsp)
     {
       message[i] = sharedSecret.at(i);
     }
-  
-  for(int i = 0; i < IDLENGTH + TIMELENGTH; i++)
+
+  char idStr[10];
+  int idStrLen = sprintf(idStr, "%d", id);
+  //printf("ID String: %s\n", idStr);
+  for(int i = 0; i < idStrLen; i++)
     {
-      message[i+sharedSecret.length()] = data[idOffset+i];
+      message[sharedSecret.length() + i] = idStr[i];
     }
   
+  for(int i = 0; i < TIMELENGTH; i++)
+    {
+      message[i+sharedSecret.length() + idStrLen] = data[idOffset + IDLENGTH + i];
+    }
+
   int dgstResult = digest_sha256(message, sharedSecret.length() + IDLENGTH + TIMELENGTH, &digest, &digest_len);
   if(dgstResult == -1)
     {
