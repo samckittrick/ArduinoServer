@@ -1,2 +1,8 @@
 Dependencies:
 Openssl-Devel 1.0.1e
+
+RoadMap:
+-Implement SSL Sockets
+-Implement Configuration File
+-Implement Certificate based auth scheme
+-Implement SSDP responder component
