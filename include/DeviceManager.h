@@ -41,6 +41,7 @@ class DeviceManager
         DeviceManager();
         //Device Enumeration and management functions
         int addDevice(int devType, std::vector<std::string> devInfo);
+	void removeDevice(int deviceAddress);
 	const std::vector<BasicDevice*> getDeviceList() const;
 	BasicDevice* getDeviceById(uint8_t id);
 	//Device addressing is based on a single byte address. Address 0 is devicemanager itself. 

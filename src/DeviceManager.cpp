@@ -40,11 +40,23 @@ int DeviceManager::addDevice(int devType, std::vector<std::string> devInfo)
       switch(devType)
 	{
 	case DEV_TYPE_SERIAL:
-	  dev = new BasicSerialDevice(devInfo);
-	  devList.push_back(dev);
-	  dev->setRequestReceiver(listener);
-	  LOG(INFO) << "Added Serial Device: " << devInfo[0];
-	  break;
+	  {
+	    dev = new BasicSerialDevice(devInfo);
+	    //Search the list, if there's an empty space, fill it. otherwise put this device at the end of the list.
+	    bool emptyFound = false;
+	    for(int i = 0; i < devList.size(); i++) {
+	      if(devList.at(i) == NULL) {
+		devList.at(i) = dev;
+		emptyFound = true;
+	      }
+	    }
+	    if(!emptyFound)
+	      devList.push_back(dev);
+	    
+	    dev->setRequestReceiver(listener);
+	    LOG(INFO) << "Added Serial Device: " << devInfo[0];
+	    break;
+	  }
 	default:
 	  LOG(WARN) << "Unknown Device Type";
 	  return -1;
@@ -59,6 +71,14 @@ int DeviceManager::addDevice(int devType, std::vector<std::string> devInfo)
     }
 }
 
+//Remove a device from the device list.
+void DeviceManager::removeDevice(int deviceAddress) {
+  if(deviceAddress > 0 && deviceAddress <= devList.size()) {
+    delete devList.at(deviceAddress);
+    devList[deviceAddress] = NULL;
+  }  
+}
+
 const std::vector<BasicDevice*> DeviceManager::getDeviceList() const
 {
   return devList;
@@ -70,6 +90,9 @@ BasicDevice* DeviceManager::getDeviceById(uint8_t id)
   std::lock_guard<std::mutex> lockGuard(devListMutex);
   for(std::vector<BasicDevice*>::iterator it = devList.begin(); it != devList.end(); it++)
     {
+      if(*it == NULL)
+	continue; 
+
       if(id == (*it)->getDeviceId())
 	{
 	  return *it;
@@ -88,7 +111,7 @@ BasicDevice* DeviceManager::getDeviceByAddress(uint8_t addr)
     }
   else
     {
-      return devList.at(addr);
+      return devList.at(addr - 1); //List is zero based but addresses are 1 based. subtract 1.
     }
 }
 
@@ -139,7 +162,11 @@ void DeviceManager::processQueue()
 	{
 	  if(req.getDest() <= devList.size() || req.getDest() < 0)
 	    {
-	      devList.at(req.getDest() - 1)->processRequest(req);
+	      BasicDevice *dev = getDeviceByAddress(req.getDest());
+	      if(dev  == NULL)
+		LOG(ERROR) << "Invalid device address(" << (int)req.getDest() << "), device is null.";
+	      else
+		dev->processRequest(req);
 	    }
 	  else
 	    {
@@ -176,15 +203,14 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
   int devEntrySize = 131;
   int nameStringLen = 128;
   std::vector<uint8_t> data;
-
-  //First byte is the number of objects
-  data.push_back(list.size());
+  uint8_t numDevices = 0;
 
   for(int i = 0; i < list.size(); i++)
     {
       BasicDevice *dev = list.at(i);
-      //Add the address of the device
-      data.push_back(2 + dev->getDeviceName().size());
+      data.push_back(3 + dev->getDeviceName().size());
+      //Add the address of the device. Add 1 because the address is 1 based, but the list is 0 based.
+      data.push_back((uint8_t)(i + 1));
       data.push_back(dev->getDeviceType());
       data.push_back(dev->getDeviceId());
       std::string devname = dev->getDeviceName();
@@ -192,7 +218,11 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
 	{
 	  data.push_back(devname.at(j));
 	}
+      numDevices++;
     }
+
+  //Now that we know the number of devices. Put it at the front of the packet
+  data.insert(data.begin(), 1, numDevices);
 
   return data;
 }
