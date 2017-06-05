@@ -179,7 +179,7 @@ const std::vector<uint8_t> DeviceManager::marshallDeviceList(const std::vector<B
 
   //First byte is the number of objects
   data.push_back(list.size());
-  
+
   for(int i = 0; i < list.size(); i++)
     {
       BasicDevice *dev = list.at(i);

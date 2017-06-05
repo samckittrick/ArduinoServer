@@ -67,7 +67,7 @@ BasicSerialDevice::BasicSerialDevice(std::vector<std::string> devParams)
       devInfo.devid = response.data[0];
       devInfo.type = response.data[1];
       devInfo.devname.empty();
-      devInfo.devname.append((char*)(&response.data[2]), response.data.size() - 2);
+      devInfo.devname.append((char*)(&response.data[2]), response.data.size() - 2); 
       LOG(DEBUG) << "Device Description: ID: " << devInfo.devid << " Type: " << devInfo.type << " Name: " << devInfo.devname;
     }
   else
